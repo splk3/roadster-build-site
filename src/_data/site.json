@@ -1,0 +1,11 @@
+{
+  "title": "Dan and Pat Build a Roadster",
+  "description": "Watch the build unfold!",
+  "origin": "https://roadster.mightypirates.com",
+  "navigation": [
+    { "title": "About", "url": "/about/" },
+    { "title": "Posts", "url": "/" },
+    { "title": "Build Info", "url": "/build-info/" },
+    { "title": "Tools and Supplies", "url": "/tools-and-supplies/" }
+  ]
+}

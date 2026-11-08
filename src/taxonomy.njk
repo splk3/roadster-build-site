@@ -1,0 +1,13 @@
+---
+layout: layout.njk
+pagination:
+  data: archive.terms
+  size: 1
+  alias: term
+permalink: "{{ term.url }}"
+eleventyComputed:
+  title: "{{ term.title }}"
+---
+<h1>{{ term.title | escape }}</h1>
+<p>{{ term.posts.length }} archived post{% if term.posts.length != 1 %}s{% endif %}</p>
+{% for url in term.posts %}{% set post = archive.posts | findPost(url) %}{% include "post-summary.njk" %}{% endfor %}

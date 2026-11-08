@@ -1,0 +1,10 @@
+---
+permalink: /sitemap.xml
+eleventyExcludeFromCollections: true
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{{ "/" | absolute | xml | safe }}</loc></url>
+  {% for entry in archive.posts | concat(archive.pages) %}<url><loc>{{ entry.url | absolute | xml | safe }}</loc><lastmod>{{ entry.date }}</lastmod></url>{% endfor %}
+  {% for term in archive.terms %}<url><loc>{{ term.url | absolute | xml | safe }}</loc></url>{% endfor %}
+</urlset>

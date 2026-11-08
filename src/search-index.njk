@@ -1,0 +1,9 @@
+---
+permalink: /search-index.json
+eleventyExcludeFromCollections: true
+---
+[
+{% for post in archive.posts %}
+{"title": {{ post.title | json | safe }}, "url": {{ post.url | json | safe }}, "text": {{ post.html | striptags | json | safe }}, "terms": {{ post.categories | concat(post.tags) | json | safe }}}{% if not loop.last %},{% endif %}
+{% endfor %}
+]

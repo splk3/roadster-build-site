@@ -1,0 +1,6 @@
+{% if post.categories.length or post.tags.length %}
+<p class="post-terms">
+  {% for term in post.categories %}<a href="{{ term.url }}">{{ term.title | escape }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+  {% if post.tags.length %}<span> · Tags: </span>{% for term in post.tags %}<a href="{{ term.url }}">{{ term.title | escape }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+</p>
+{% endif %}

@@ -1,0 +1,15 @@
+---
+layout: layout.njk
+pagination:
+  data: archive.home
+  size: 1
+  alias: listing
+permalink: "{{ listing.url }}"
+---
+<h1 class="visually-hidden">Posts{% if listing.number > 1 %}, page {{ listing.number }}{% endif %}</h1>
+{% for post in listing.posts %}{% include "post-summary.njk" %}{% endfor %}
+<nav class="pagination" aria-label="Posts pagination">
+  {% if listing.previous %}<a href="{{ listing.previous }}">← Newer posts</a>{% endif %}
+  <span>Page {{ listing.number }} of {{ archive.home.length }}</span>
+  {% if listing.next %}<a href="{{ listing.next }}">Older posts →</a>{% endif %}
+</nav>

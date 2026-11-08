@@ -1,0 +1,5 @@
+---
+permalink: /build-info.json
+eleventyExcludeFromCollections: true
+---
+{"revision": {{ build.revision | json | safe }}, "sourceHash": {{ archive.sourceHash | json | safe }}}

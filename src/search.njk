@@ -1,0 +1,16 @@
+---
+layout: layout.njk
+title: Search the archive
+permalink: /search/
+---
+<h1>Search the archive</h1>
+<form id="search-form" action="/search/" method="get" role="search">
+  <label for="query">Search titles, articles, categories, and tags</label>
+  <div class="search-controls">
+    <input id="query" type="search" name="q">
+    <button type="submit">Search</button>
+  </div>
+</form>
+<p id="search-help">Search requires JavaScript. Browse the <a href="/">posts</a> or the category and tag links instead.</p>
+<p id="search-status" role="status" aria-live="polite"></p>
+<ul id="search-results"></ul>

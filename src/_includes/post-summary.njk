@@ -1,0 +1,7 @@
+<article class="post-summary">
+  <h2><a href="{{ post.url }}">{{ post.title | escape }}</a></h2>
+  <p class="metadata">Posted on <time datetime="{{ post.date }}">{{ post.date | readableDate }}</time> by {{ post.author | escape }}{% if post.comments.length %} · <a href="{{ post.url }}#comments">{{ post.comments.length }} comment{% if post.comments.length != 1 %}s{% endif %}</a>{% endif %}</p>
+  <div class="entry-content">{{ post.excerpt | safe }}</div>
+  <p><a href="{{ post.url }}">Continue reading <span class="visually-hidden">{{ post.title | escape }}</span> →</a></p>
+  {% include "terms.njk" %}
+</article>

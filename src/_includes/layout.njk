@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>{{ (title or site.title) | escape }}</title>
+    <meta name="description" content="{{ (description or site.description) | escape }}">
+    <link rel="canonical" href="{{ page.url | absolute }}">
+    <link rel="stylesheet" href="/assets/css/site.css">
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/search.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header>
+      <div class="nav-bar">
+        <nav aria-label="Main navigation">
+          {% for item in site.navigation %}
+          <a href="{{ item.url }}"{% if page.url == item.url or (item.url == "/" and (page.url.startsWith("/posts/") or page.url.startsWith("/page/"))) %} aria-current="page"{% endif %}>{{ item.title }}</a>
+          {% endfor %}
+          <button class="theme-toggle" type="button" aria-label="Switch to dark mode" hidden>
+            <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"></path></svg>
+            <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A9 9 0 0 1 8.6 4a9 9 0 1 0 11.4 11.4Z"></path></svg>
+          </button>
+        </nav>
+      </div>
+      <div class="masthead">
+        <a class="site-title" href="/">{{ site.title }}</a>
+        <p class="tagline">{{ site.description }}</p>
+        <img class="banner" src="{{ archive.banner.large }}" srcset="{{ archive.banner.srcset }}" sizes="(max-width: 1225px) 100vw, 1175px" alt="Red roadster body awaiting assembly" width="940" height="198" fetchpriority="high">
+      </div>
+    </header>
+    <div class="site-panel">
+      <main id="main" tabindex="-1">
+        {{ content | safe }}
+      </main>
+      <aside aria-label="Archive navigation">
+        <form action="/search/" method="get" role="search">
+          <label for="archive-search">Search the archive</label>
+          <div class="search-controls">
+            <input id="archive-search" name="q" type="search">
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <h2>Categories</h2>
+        <ul class="taxonomy-list">
+          {% for term in archive.categories %}<li><a href="{{ term.url }}">{{ term.title | escape }}</a></li>{% endfor %}
+        </ul>
+        <h2>Tags</h2>
+        <ul class="taxonomy-list">
+          {% for term in archive.tags %}<li><a href="{{ term.url }}">{{ term.title | escape }}</a></li>{% endfor %}
+        </ul>
+      </aside>
+    </div>
+    <footer class="site-footer">
+      <p>A frozen archive of the 2011–2014 roadster build. Comments are preserved as originally published.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+---
+layout: layout.njk
+pagination:
+  data: archive.pages
+  size: 1
+  alias: article
+permalink: "{{ article.url }}"
+eleventyComputed:
+  title: "{{ article.title }}"
+  description: "{{ article.description }}"
+---
+<article>
+  <h1>{{ article.title | escape }}</h1>
+  <div class="entry-content">{{ article.html | safe }}</div>
+</article>

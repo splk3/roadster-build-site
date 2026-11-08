@@ -1,0 +1,7 @@
+tmp/
+node_modules/
+_site/
+test-results/
+playwright-report/
+super-linter-output/
+super-linter.log
