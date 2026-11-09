@@ -65,10 +65,9 @@ cleaned archive exactly.
 The current working tree passes the build, ten unit/content/workflow tests, 12
 browser tests including light/dark/mobile visual baselines and axe accessibility
 checks, generated link/fragment/image/srcset and archive/search coverage, local
-ESLint/Stylelint/Prettier, and Atom feed parsing. The browser tests also verify
-the no-JavaScript fallback, system dark theme, and legacy WordPress ID redirects.
-The release-pinned Super-Linter result recorded during the original migration
-was not rerun for these site enhancements.
+ESLint/Stylelint/Prettier, Atom feed parsing, and the release-pinned Super-Linter
+container. The browser tests also verify the no-JavaScript fallback, system
+dark theme, and legacy WordPress ID redirects.
 
 These are local results, not a claim that GitHub Actions or the custom domain
 has already deployed.
