@@ -13,3 +13,22 @@ permalink: "{{ listing.url }}"
   <span>Page {{ listing.number }} of {{ archive.home.length }}</span>
   {% if listing.next %}<a href="{{ listing.next }}">Older posts →</a>{% endif %}
 </nav>
+{% if listing.number == 1 %}
+<script>
+  (() => {
+    const postId = new URLSearchParams(window.location.search).get("p");
+    if (!postId || !/^\d+$/.test(postId)) return;
+
+    fetch("/search-index.json")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Search index request failed (${res.status})`);
+        return res.json();
+      })
+      .then((posts) => {
+        const match = posts.find((post) => String(post.id) === postId);
+        if (match) window.location.replace(match.url);
+      })
+      .catch((error) => console.error("Legacy post lookup unavailable", error));
+  })();
+</script>
+{% endif %}

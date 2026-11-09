@@ -7,6 +7,45 @@
     <title>{{ (title or site.title) | escape }}</title>
     <meta name="description" content="{{ (description or site.description) | escape }}">
     <link rel="canonical" href="{{ page.url | absolute }}">
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="/feed.xml">
+    <meta property="og:site_name" content="{{ site.title | escape }}">
+    <meta property="og:type" content="{% if page.url.startsWith('/posts/') %}article{% else %}website{% endif %}">
+    <meta property="og:title" content="{{ (title or site.title) | escape }}">
+    <meta property="og:description" content="{{ (description or site.description) | escape }}">
+    <meta property="og:url" content="{{ page.url | absolute }}">
+    {% set ogImage = (post.html | firstImage) or archive.banner.large %}
+    <meta property="og:image" content="{{ ogImage | absolute }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ (title or site.title) | escape }}">
+    <meta name="twitter:description" content="{{ (description or site.description) | escape }}">
+    <meta name="twitter:image" content="{{ ogImage | absolute }}">
+    {% if post %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": {{ post.title | json | safe }},
+      "description": {{ post.description | json | safe }},
+      "datePublished": {{ post.date | json | safe }},
+      "author": {
+        "@type": "Person",
+        "name": {{ post.author | json | safe }}
+      },
+      "url": {{ post.url | absolute | json | safe }}
+    }
+    </script>
+    {% elif page.url == "/" %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": {{ site.title | json | safe }},
+      "description": {{ site.description | json | safe }},
+      "url": {{ "/" | absolute | json | safe }}
+    }
+    </script>
+    {% endif %}
     <link rel="stylesheet" href="/assets/css/site.css">
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/search.js" defer></script>

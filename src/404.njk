@@ -4,5 +4,44 @@ title: Page not found
 permalink: /404.html
 ---
 <h1>Page not found</h1>
+<div id="legacy-match" class="legacy-match" hidden>
+  <p><strong>Looking for a historical post?</strong></p>
+  <p>We found a matching archive article: <a id="legacy-link" href="/"></a></p>
+</div>
 <p>This page is not in the archive. Old WordPress article addresses have changed.</p>
 <p><a href="/">Browse all posts</a> or <a href="/search/">search the archive</a>.</p>
+<script>
+  (() => {
+    const path = window.location.pathname;
+    const search = window.location.search;
+    const segments = path.split("/").filter(Boolean);
+    let candidate = segments.length ? segments[segments.length - 1] : "";
+    if (candidate.endsWith(".html")) candidate = candidate.slice(0, -5);
+    const params = new URLSearchParams(search);
+    const postId = params.get("p");
+    const postName = params.get("name") || candidate;
+    if (!postName && !postId) return;
+
+    fetch("/search-index.json")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Search index request failed (${res.status})`);
+        return res.json();
+      })
+      .then((posts) => {
+        const match = posts.find((p) => {
+          const slug = p.url.replace(/^\/posts\/|\/$/g, "");
+          return slug === postName || (postId && String(p.id) === postId);
+        });
+        if (match) {
+          const box = document.querySelector("#legacy-match");
+          const link = document.querySelector("#legacy-link");
+          if (box && link) {
+            link.href = match.url;
+            link.textContent = `${match.title} →`;
+            box.hidden = false;
+          }
+        }
+      })
+      .catch((error) => console.error("Legacy post lookup unavailable", error));
+  })();
+</script>

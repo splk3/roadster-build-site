@@ -42,6 +42,10 @@ test("search has matches, no-result states, safe text, and explicit fetch errors
   await expect(page.locator("#search-results")).toContainText(
     "Finished Paint and Final Assembly",
   );
+  await expect(page.locator("#search-results mark").first()).toBeVisible();
+  await expect(
+    page.locator("#search-results .search-meta").first(),
+  ).toContainText("Posted on");
   await page.locator("#query").fill("zzzznoarticlezzzz");
   await page
     .locator("#search-form")
@@ -61,6 +65,50 @@ test("search has matches, no-result states, safe text, and explicit fetch errors
   await page.goto("/search/?q=engine");
   await expect(page.locator("#search-status")).toContainText(
     "Search is unavailable",
+  );
+});
+
+test("404 page provides legacy URL recommendation when historical path matches", async ({
+  page,
+}) => {
+  await page.goto("/2014/03/03/finished-paint-and-final-assembly/");
+  await expect(page.locator("#legacy-match")).toBeVisible();
+  await expect(page.locator("#legacy-link")).toHaveAttribute(
+    "href",
+    "/posts/finished-paint-and-final-assembly/",
+  );
+});
+
+test("legacy WordPress post IDs redirect to the canonical archive route", async ({
+  page,
+}) => {
+  await page.goto("/?p=476");
+  await expect(page).toHaveURL(/\/posts\/finished-paint-and-final-assembly\/$/);
+});
+
+test("metadata includes favicon, atom feed, open graph, and structured data", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    "/assets/images/favicon.svg",
+  );
+  await expect(page.locator('link[rel="alternate"]')).toHaveAttribute(
+    "href",
+    "/feed.xml",
+  );
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    "content",
+    "Dan and Pat Build a Roadster",
+  );
+  await page.goto("/posts/finished-paint-and-final-assembly/");
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
+    "content",
+    "article",
+  );
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(
+    1,
   );
 });
 

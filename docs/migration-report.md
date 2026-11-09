@@ -42,20 +42,33 @@ The generated [JSON inventory](migration-report.json) records each scoped source
 ID, title, applied text/link/image edits, omitted comment count, and repetition
 candidate. It intentionally does not reproduce raw XML or private fields.
 
+## Post-migration site enhancements
+
+- Added an SVG roadster favicon, Open Graph and Twitter Card metadata, and
+  schema.org structured data for the home page and posts.
+- Added legacy URL discovery on the 404 page and canonical redirects for
+  historical WordPress `/?p=<id>` links.
+- Enhanced client-side search with publication dates, contextual snippets,
+  safe keyword highlighting, and debounced live results.
+- Added print styles for article pages and an Atom feed at `/feed.xml` containing
+  all 44 published posts.
+
 ## Validation results
 
-The resulting site contains **170 validated HTML pages** and **1,006 optimized
-JPEG variants** from 340 referenced source photographs (including the banner).
-The complete deployment is approximately **95 MiB**, below the 500 MiB budget.
+The resulting site contains **170 validated HTML pages** and **1,007 images**:
+1,006 optimized JPEG variants from 340 referenced source photographs (including
+the banner), plus the SVG favicon. The complete deployment is **96.1 MiB**, below
+the 500 MiB budget.
 Reimporting from the preserved original-export backup reproduced the entire
 cleaned archive exactly.
 
-Validation passed: ten unit/content/workflow tests, nine browser tests including
-light/dark/mobile visual baselines and axe accessibility checks, every generated
-internal link/fragment/image/srcset, archive/search coverage, local ESLint/
-Stylelint/Prettier, and the release-pinned Super-Linter container across all
-maintained JavaScript, JSON, CSS, Markdown, YAML, workflows, and shell files.
-The browser tests verify the actual no-JavaScript fallback and system dark theme.
+The current working tree passes the build, ten unit/content/workflow tests, 12
+browser tests including light/dark/mobile visual baselines and axe accessibility
+checks, generated link/fragment/image/srcset and archive/search coverage, local
+ESLint/Stylelint/Prettier, and Atom feed parsing. The browser tests also verify
+the no-JavaScript fallback, system dark theme, and legacy WordPress ID redirects.
+The release-pinned Super-Linter result recorded during the original migration
+was not rerun for these site enhancements.
 
 These are local results, not a claim that GitHub Actions or the custom domain
 has already deployed.

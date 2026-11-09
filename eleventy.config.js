@@ -19,10 +19,16 @@ export default function (eleventy) {
   eleventy.addFilter("findPost", (posts, url) =>
     posts.find((post) => post.url === url),
   );
+  eleventy.addFilter("firstImage", (html) => {
+    if (!html) return null;
+    const match = html.match(/src="([^"]+)"/);
+    return match ? match[1] : null;
+  });
   eleventy.addFilter("xml", (value) =>
-    value
+    (value || "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;"),
   );
   return {

@@ -4,6 +4,6 @@ eleventyExcludeFromCollections: true
 ---
 [
 {% for post in archive.posts %}
-{"title": {{ post.title | json | safe }}, "url": {{ post.url | json | safe }}, "text": {{ post.html | striptags | json | safe }}, "terms": {{ post.categories | concat(post.tags) | json | safe }}}{% if not loop.last %},{% endif %}
+{"id": {{ post.id | json | safe }}, "title": {{ post.title | json | safe }}, "url": {{ post.url | json | safe }}, "date": {{ post.date | json | safe }}, "dateFormatted": {{ post.date | readableDate | json | safe }}, "text": {{ post.html | striptags | json | safe }}, "terms": {{ post.categories | concat(post.tags) | json | safe }}}{% if not loop.last %},{% endif %}
 {% endfor %}
 ]
