@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { parseEnv } from "node:util";
 import { load } from "cheerio";
 import { validateWorkflow } from "../scripts/validate-workflows.mjs";
 import { cameraName, repetitionReport } from "../scripts/import-wordpress.mjs";
@@ -105,4 +106,10 @@ test("workflow policy rejects floating pins, wrong comments, unsafe triggers, an
   );
   const deploy = `on:\n  push:\npermissions:\n  contents: read\njobs:\n  deploy:\n    permissions:\n      pages: write\n    environment:\n      name: github-pages\n    if: github.ref == 'refs/heads/main'\n`;
   assert.throws(() => validateWorkflow(deploy), /validation gates/);
+});
+
+test("shared Super-Linter settings do not require a GitHub token", async () => {
+  const settings = parseEnv(await readFile(".github/super-linter.env", "utf8"));
+  assert.equal(settings.MULTI_STATUS, "false");
+  assert.equal(settings.ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT, "false");
 });
