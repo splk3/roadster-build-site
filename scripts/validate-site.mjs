@@ -60,10 +60,20 @@ for (const file of files.filter((file) => file.endsWith(".html"))) {
     .toArray()
     .map((node) => $(node).attr("id"));
   assert.equal(new Set(ids).size, ids.length, `Duplicate IDs: ${file}`);
-  assert.equal(
-    $('link[rel="canonical"]').attr("href"),
-    `https://roadster.mightypirates.com${file.endsWith("/index.html") ? file.slice(root.length, -10) : file.slice(root.length)}`,
-  );
+  const refresh = $('meta[http-equiv="refresh"]').attr("content");
+  if (refresh) {
+    const match = /url=([^;]+)/i.exec(refresh);
+    assert(match, `Invalid refresh redirect in ${file}`);
+    assert.equal(
+      $('link[rel="canonical"]').attr("href"),
+      `https://roadster.mightypirates.com${match[1].trim()}`,
+    );
+  } else {
+    assert.equal(
+      $('link[rel="canonical"]').attr("href"),
+      `https://roadster.mightypirates.com${file.endsWith("/index.html") ? file.slice(root.length, -10) : file.slice(root.length)}`,
+    );
+  }
   documents.set(file, { $, ids: new Set(ids) });
 }
 const allFiles = new Set(files);
@@ -114,6 +124,18 @@ for (const route of routes) {
   assert(
     documents.has(join(root, route, "index.html")),
     `Unbuilt route: ${route}`,
+  );
+}
+for (const post of archive.posts) {
+  assert(post.legacyUrl, `Missing legacyUrl for post ${post.id}`);
+  const redirectFile = join(root, post.legacyUrl, "index.html");
+  assert(
+    documents.has(redirectFile),
+    `Unbuilt legacy redirect: ${post.legacyUrl}`,
+  );
+  assert.equal(
+    documents.get(redirectFile).$('link[rel="canonical"]').attr("href"),
+    `https://roadster.mightypirates.com${post.url}`,
   );
 }
 assert.equal(

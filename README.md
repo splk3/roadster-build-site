@@ -53,13 +53,14 @@ published content, unresolved local media/links, unsupported shortcodes, or
 invalid comment threads. It generates JPEG display/large-view variants, never
 original-resolution downloads. The output budget is 500 MiB.
 
-**Content review remains necessary:** both source formats contain cross-post
-duplication. Confirmed spam and encoding damage were cleaned; ambiguous copied
-passages were retained rather than guessing article boundaries. See
+**Content curation is deterministic and versioned:** reviewed fixes—removing
+the 23 verified prepended cross-post duplicate blocks, stripping obsolete dead
+gallery sentences, updating two broken Factory Five/Build School links, marking
+the inline emoticon decorative (`alt=""`), and providing visually verified alt
+text for all 338 build photographs—are stored in `src/_data/curation.json` and
+applied automatically on every `npm run import`. See
 [the follow-up report](docs/migration-report.md) and its per-record
-[edit inventory](docs/migration-report.json). Manual edits to the cleaned archive
-will be replaced on reimport; preserve reviewed corrections in an authoritative
-XML source before importing again.
+[edit inventory](docs/migration-report.json).
 
 ## Theme and archived comments
 
@@ -97,10 +98,24 @@ Permissions are read-only except for the final Pages/OIDC deployment job.
    nonexistent URL serving the themed 404.
 
 Check `/build-info.json` against the deployed commit SHA to avoid accepting an
-old cached deployment. Existing date-based post URLs intentionally changed to
-`/posts/{slug}/`; there is no blanket server-side redirect support on Pages.
-The old `www.roadster.mightypirates.com` hostname needs a separate owner decision.
-Do not retire the original hosting until the custom-domain checks succeed.
+old cached deployment. Existing date-based post URLs (`/YYYY/MM/DD/slug/`) are
+preserved via 44 static HTML redirect pages (with `<link rel="canonical">`,
+`<meta http-equiv="refresh">`, and hash-preserving JavaScript) pointing to the
+canonical `/posts/{slug}/` routes, and legacy `/?p=<id>` links redirect from the
+home page.
+
+### Handling `www.roadster.mightypirates.com`
+
+The legacy WordPress host currently redirects `roadster.mightypirates.com` to
+`www.roadster.mightypirates.com`. GitHub Pages only binds one custom hostname
+(`roadster.mightypirates.com`) and does **not** automatically redirect a `www.`
+prefix on a subdomain (`www.roadster.*` → `roadster.*`). Before retiring the
+legacy host, configure an HTTP `301` redirect at your DNS/edge provider (for
+example, a Cloudflare Redirect Rule or registrar URL forwarding rule) forwarding
+`https://www.roadster.mightypirates.com/*` (and `http://`) to
+`https://roadster.mightypirates.com/$1`, preserving path and query string. Do
+not retire the original hosting until both `roadster.mightypirates.com` and the
+`www.` redirect checks succeed.
 
 Actions use full verified release commit SHAs with exact release-tag comments.
 Dependabot proposes updates for npm and GitHub Actions. Review both the SHA/tag

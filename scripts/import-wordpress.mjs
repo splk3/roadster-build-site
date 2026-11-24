@@ -11,13 +11,56 @@ import { autop } from "@wordpress/autop";
 
 export const defaultXml =
   "tmp/danandpatbuildaroadster.WordPress.2026-11-07.xml";
+export const defaultCuration = "src/_data/curation.json";
 const oldHosts = new Set([
   "roadster.mightypirates.com",
   "www.roadster.mightypirates.com",
 ]);
 export const spamHost =
   /(?:viagra|cialis|pharmacy|sildenafil|tadalafil|paxil)|^canadianped\.com$/i;
-const cameraName = /^(?:IMG|DSC|P\d|image|photo)[\d_\s-]*$/i;
+export const cameraName =
+  /^(?:IMG|DSC|P\d|image|photo|20\d{2}[-_]?\d{2}[-_]?\d{2}|\d{8}_\d{6}|SAMSUNG)[\d_\s-]*$/i;
+
+const obsoleteGalleryPatterns = [
+  /\s*In the meantime, you can see more pictures of the build in the Gallery\.?/gi,
+  /\s*More (?:pictures|photos)(?: of (?:all of )?this work| from the weekend)? (?:are|can be (?:seen|found)|are available) in the (?:photo )?Gallery(?: here and here)?\.?/gi,
+  /\s*(?:You can )?see (?:a few )?(?:more (?:of the )?(?:photos|pictures) in the Gallery|(?:the )?Gallery for (?:all of the pictures|more photos))\.?/gi,
+  /\s*For more pictures, see the Gallery\.?/gi,
+  /\s*(?:The full photo summary can be found|Other photos from this work are|Pictures of the body coating and more sheet-metal pictures are|Pictures are up) in the Gallery\.?/gi,
+  /\s*The rest of the Body buck pictures can be viewed here\.?/gi,
+  /\s*There are about 35 pictures now\.\s*I will be adding more later as well, but the system acted up\.?/gi,
+  /\s*And also Here\.?/gi,
+  /\s*Note:\s*Added link at bottom to additional photos\.?/gi,
+  /, and the Gallery for more photos/gi,
+  /\s*We will post any videos on our Youtube channel\.?/gi,
+  /\s*Build School pictures are in the gallery, too\.\s*They need some notes added and a little more organization, but they are there and available if anyone needs some help with getting things together properly\.?/gi,
+];
+
+export function applyTrimRule(source, rule, title) {
+  if (!rule) return source;
+  const idx = source.lastIndexOf(rule.afterLast);
+  if (idx < 0) {
+    throw new Error(`Curation trim rule afterLast not found in ${title}`);
+  }
+  const trimmed = source.slice(idx + rule.afterLast.length);
+  if (rule.startsWith && !trimmed.startsWith(rule.startsWith)) {
+    throw new Error(
+      `Curation trim rule startsWith mismatch in ${title}: got ${JSON.stringify(trimmed.slice(0, 60))}`,
+    );
+  }
+  return trimmed;
+}
+
+function humanizeAttachmentTitle(rawTitle) {
+  const cleaned = (rawTitle ?? "")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned || cameraName.test(cleaned)) return "";
+  return cleaned;
+}
 
 export function repairEncoding(text) {
   return text
@@ -75,7 +118,14 @@ function paragraphs(source) {
 
 export async function cleanBody(
   source,
-  { routeMap, attachmentLinks = new Map(), image, title, edits = [] },
+  {
+    routeMap,
+    attachmentLinks = new Map(),
+    image,
+    title,
+    edits = [],
+    curation = {},
+  },
 ) {
   if (/\[(?:caption|gallery|embed|video|audio)\b/i.test(source)) {
     throw new Error(
@@ -148,8 +198,17 @@ export async function cleanBody(
       throw new Error(`Unmapped internal link in ${title}: ${url.pathname}`);
     }
     if (!["http:", "https:", "mailto:"].includes(url.protocol)) return null;
+    const rewritten = curation.linkRewrites?.[url.href];
+    if (rewritten) {
+      edits.push({
+        type: "external-link-updated",
+        detail: `${url.href} -> ${rewritten}`,
+      });
+      return rewritten;
+    }
     return url.href;
   };
+  let hadObsoleteGalleryLink = false;
   $("a").each((_, node) => {
     const anchor = $(node);
     const href = anchor.attr("href");
@@ -175,10 +234,62 @@ export async function cleanBody(
       (/youtube\.com$/.test(url.hostname) &&
         /^\/(?:user|channel|@)/.test(url.pathname))
     ) {
+      if (
+        url.hostname === "gallery.roadster.mightypirates.com" ||
+        /youtube\.com$/.test(url.hostname)
+      ) {
+        hadObsoleteGalleryLink = true;
+      }
       edits.push({ type: "obsolete-link", detail: anchor.text() });
       anchor.replaceWith(anchor.contents());
     }
   });
+  if (hadObsoleteGalleryLink) {
+    const mergeTextNodes = (parent) => {
+      const children = parent.children ?? [];
+      for (let i = 0; i < children.length;) {
+        if (children[i].type === "text" && children[i + 1]?.type === "text") {
+          children[i].data += children[i + 1].data;
+          $(children[i + 1]).remove();
+        } else {
+          if (children[i].children?.length) mergeTextNodes(children[i]);
+          i += 1;
+        }
+      }
+    };
+    mergeTextNodes($.root()[0]);
+    const stripGalleryText = (node) => {
+      if (node.type === "text") {
+        let updated = node.data;
+        for (const pattern of obsoleteGalleryPatterns) {
+          updated = updated.replace(pattern, "");
+        }
+        if (updated !== node.data) {
+          edits.push({
+            type: "obsolete-gallery-prose",
+            detail: "Removed obsolete gallery/channel reference",
+          });
+          node.data = updated.replace(/\s{2,}/g, " ");
+        }
+      }
+      for (const child of node.children ?? []) stripGalleryText(child);
+    };
+    stripGalleryText($.root()[0]);
+    $("p").each((_, node) => {
+      const p = $(node);
+      if (
+        !p
+          .text()
+          .replace(/\u00a0/g, " ")
+          .trim() &&
+        !p.find("img, a, iframe, span[id]").length
+      ) {
+        p.remove();
+      }
+    });
+  }
+  const decorative = new Set(curation.decorativeImages ?? []);
+  let photoIndex = 0;
   for (const node of $("img").toArray()) {
     const img = $(node);
     const media = await image(img.attr("src"), img.attr("class"));
@@ -191,14 +302,23 @@ export async function cleanBody(
       loading: "lazy",
       decoding: "async",
     });
-    const alt = (img.attr("alt") ?? "").trim();
-    if (!alt || cameraName.test(alt)) {
-      const context = img.closest("p").text().replace(/\s+/g, " ").trim();
-      img.attr(
-        "alt",
-        `${title}: ${context.slice(0, 140) || "roadster build photograph"}`,
-      );
-      edits.push({ type: "image-description", detail: media.display });
+    const rawAlt = (img.attr("alt") ?? "").trim();
+    if (media.hash && decorative.has(media.hash)) {
+      img.attr("alt", "");
+      edits.push({ type: "image-decorative", detail: media.display });
+    } else if (media.hash && curation.imageAlt?.[media.hash]) {
+      img.attr("alt", curation.imageAlt[media.hash]);
+      edits.push({ type: "image-alt-curated", detail: media.display });
+    } else if (!rawAlt || cameraName.test(rawAlt)) {
+      const attachmentTitle = humanizeAttachmentTitle(media.attachmentTitle);
+      if (attachmentTitle) {
+        img.attr("alt", attachmentTitle);
+        edits.push({ type: "image-alt-attachment", detail: media.display });
+      } else {
+        photoIndex += 1;
+        img.attr("alt", `${title} — build photograph ${photoIndex}`);
+        edits.push({ type: "image-description", detail: media.display });
+      }
     }
     if (img.parent().is("a")) img.parent().attr("href", media.large);
   }
@@ -366,7 +486,13 @@ async function mediaPipeline(root, attachments, outputRoot) {
   const cache = new Map();
   const files = new Set();
   const attachmentById = new Map(
-    attachments.map((item) => [item["wp:post_id"], item["wp:attachment_url"]]),
+    attachments.map((item) => [
+      item["wp:post_id"],
+      {
+        url: item["wp:attachment_url"],
+        title: repairEncoding(value(item.title)).trim(),
+      },
+    ]),
   );
   const localPath = (url) => {
     const parsed = new URL(url, "https://roadster.mightypirates.com");
@@ -381,7 +507,8 @@ async function mediaPipeline(root, attachments, outputRoot) {
   };
   const image = async (url, className = "") => {
     const id = /wp-image-(\d+)/.exec(className)?.[1];
-    const original = id ? attachmentById.get(id) : undefined;
+    const attachment = id ? attachmentById.get(id) : undefined;
+    const original = attachment?.url;
     let path = localPath(original ?? url);
     if (!existsSync(path)) {
       const candidates = [
@@ -391,7 +518,12 @@ async function mediaPipeline(root, attachments, outputRoot) {
       path = candidates.find((candidate) => existsSync(candidate));
       if (!path) throw new Error(`Missing local image: ${url}`);
     }
-    if (cache.has(path)) return cache.get(path);
+    if (cache.has(path)) {
+      const cached = cache.get(path);
+      return attachment?.title && !cached.attachmentTitle
+        ? { ...cached, attachmentTitle: attachment.title }
+        : cached;
+    }
     const input = await readFile(path);
     const hash = createHash("sha256").update(input).digest("hex").slice(0, 16);
     const variants = [];
@@ -418,6 +550,8 @@ async function mediaPipeline(root, attachments, outputRoot) {
     }
     const display = variants[Math.min(1, variants.length - 1)];
     const result = {
+      hash,
+      attachmentTitle: attachment?.title ?? "",
       display: display.url,
       large: variants.at(-1).url,
       srcset: variants
@@ -456,8 +590,13 @@ export async function importArchive({
   root = process.cwd(),
   xmlPath = defaultXml,
   exportRoot = root,
+  curationPath = defaultCuration,
 } = {}) {
   const xml = await readFile(resolve(root, xmlPath), "utf8");
+  const resolvedCuration = resolve(root, curationPath);
+  const curation = existsSync(resolvedCuration)
+    ? JSON.parse(await readFile(resolvedCuration, "utf8"))
+    : {};
   const items = parseWxr(xml);
   const records = scopeRecords(items, await exportedScope(exportRoot));
   const attachments = items.filter(
@@ -489,13 +628,29 @@ export async function importArchive({
       type === "post"
         ? `/posts/${item["wp:post_name"]}/`
         : `/${item["wp:post_name"]}/`;
+    const legacyPathname = new URL(value(item.link)).pathname.replace(
+      /\/$/,
+      "",
+    );
+    const legacyUrl = `${legacyPathname}/`;
     const edits = [];
-    const { html } = await cleanBody(value(item["content:encoded"]), {
+    let rawSource = value(item["content:encoded"]);
+    const trimRule = curation.trimBefore?.[String(id)];
+    if (trimRule) {
+      const beforeLen = rawSource.length;
+      rawSource = applyTrimRule(rawSource, trimRule, title);
+      edits.push({
+        type: "duplicate-prefix-removed",
+        detail: `Removed ${beforeLen - rawSource.length} bytes of verified duplicated prefix`,
+      });
+    }
+    const { html } = await cleanBody(rawSource, {
       routeMap,
       attachmentLinks,
       image: media.image,
       title,
       edits,
+      curation,
     });
     const comments = [];
     for (const comment of approvedComments(item)) {
@@ -505,6 +660,7 @@ export async function importArchive({
         image: media.image,
         title: `${title} comment ${comment.id}`,
         edits,
+        curation,
       });
       comments.push({
         id: comment.id,
@@ -535,6 +691,7 @@ export async function importArchive({
       id,
       title,
       url,
+      ...(type === "post" ? { legacyUrl } : {}),
       date: item["wp:post_date"].slice(0, 10),
       author: value(item["dc:creator"]).trim(),
       html,
@@ -611,7 +768,7 @@ export async function importArchive({
     changes,
     repetitions: repetitionReport([...archive.posts, ...archive.pages]),
     disposition:
-      "Ambiguous cross-post content retained for follow-up; confirmed spam and encoding damage cleaned",
+      "Verified duplicated prefixes removed, obsolete gallery prose stripped, external links updated, and image alt text curated via src/_data/curation.json",
   };
   const output = resolve(root, "src/_data");
   await mkdir(output, { recursive: true });

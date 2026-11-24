@@ -68,10 +68,17 @@ test("search has matches, no-result states, safe text, and explicit fetch errors
   );
 });
 
-test("404 page provides legacy URL recommendation when historical path matches", async ({
+test("legacy date-based URLs redirect to canonical routes and 404 helper still handles unmatched paths", async ({
   page,
 }) => {
-  await page.goto("/2014/03/03/finished-paint-and-final-assembly/");
+  await page.goto("/2014/03/03/finished-paint-and-final-assembly/#comment-100");
+  await expect(page).toHaveURL(
+    /\/posts\/finished-paint-and-final-assembly\/#comment-100$/,
+  );
+  const response = await page.goto(
+    "/archive/finished-paint-and-final-assembly/",
+  );
+  expect(response.status()).toBe(404);
   await expect(page.locator("#legacy-match")).toBeVisible();
   await expect(page.locator("#legacy-link")).toHaveAttribute(
     "href",

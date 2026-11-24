@@ -7,6 +7,7 @@ import {
   repairEncoding,
   approvedComments,
   repetitionReport,
+  applyTrimRule,
 } from "../scripts/import-wordpress.mjs";
 import { load } from "cheerio";
 
@@ -173,4 +174,87 @@ test("cross-post detection reports complete and partial matches without changing
     ),
   );
   assert.equal(JSON.stringify(records), before);
+});
+
+test("curation trims verified duplicate prefixes, rewrites dead links, strips gallery boilerplate, and resolves alt text", async () => {
+  const trimmed = applyTrimRule(
+    "Copied prefix\nEnd of copy.\nReal opening sentence.",
+    { afterLast: "End of copy.\n", startsWith: "Real opening" },
+    "Sample Post",
+  );
+  assert.equal(trimmed, "Real opening sentence.");
+  assert.throws(
+    () =>
+      applyTrimRule(
+        "Unchanged text",
+        { afterLast: "Missing marker", startsWith: "Real" },
+        "Sample Post",
+      ),
+    /afterLast not found/,
+  );
+  assert.throws(
+    () =>
+      applyTrimRule(
+        "End of copy.\nUnexpected start.",
+        { afterLast: "End of copy.\n", startsWith: "Real opening" },
+        "Sample Post",
+      ),
+    /startsWith mismatch/,
+  );
+
+  const hashes = new Map([
+    ["decor.png", { hash: "decor1234567890a", attachmentTitle: "emoticon" }],
+    ["curated.jpg", { hash: "curat1234567890b", attachmentTitle: "DSC0001" }],
+    [
+      "titled.jpg",
+      { hash: "title1234567890c", attachmentTitle: "MarkFrameLocations" },
+    ],
+    ["plain.jpg", { hash: "plain1234567890d", attachmentTitle: "IMG_1234" }],
+  ]);
+  const mockImage = async (src) => {
+    const key = src.split("/").at(-1);
+    const meta = hashes.get(key) ?? { hash: "0000000000000000" };
+    return {
+      ...meta,
+      display: `/assets/images/${meta.hash}-900.jpg`,
+      large: `/assets/images/${meta.hash}-1600.jpg`,
+      srcset: `/assets/images/${meta.hash}-900.jpg 900w`,
+      width: 900,
+      height: 675,
+    };
+  };
+  const { html } = await cleanBody(
+    '<p>Installed brakes. More photos can be seen in the <a href="http://gallery.roadster.mightypirates.com/brakes/">Gallery</a>.</p>\n\n' +
+      '<p>See <a href="http://www.factoryfive.com/rdsterhome.html">Mk4 Roadster</a>.</p>\n\n' +
+      '<p><img src="/wp-content/uploads/decor.png" alt="Sad smile">' +
+      '<img src="/wp-content/uploads/curated.jpg" alt="20130602_180206">' +
+      '<img src="/wp-content/uploads/titled.jpg" alt="">' +
+      '<img src="/wp-content/uploads/plain.jpg" alt="2011-04-02_18-18-27_583"></p>',
+    {
+      ...options,
+      image: mockImage,
+      curation: {
+        decorativeImages: ["decor1234567890a"],
+        imageAlt: {
+          curat1234567890b: "Silver roadster body after wet sanding",
+        },
+        linkRewrites: {
+          "http://www.factoryfive.com/rdsterhome.html":
+            "https://www.factoryfive.com/roadster/",
+        },
+      },
+    },
+  );
+  assert(!html.includes("Gallery"));
+  assert(html.includes('href="https://www.factoryfive.com/roadster/"'));
+  const $ = load(html);
+  const alts = $("img")
+    .toArray()
+    .map((node) => $(node).attr("alt"));
+  assert.deepEqual(alts, [
+    "",
+    "Silver roadster body after wet sanding",
+    "Mark Frame Locations",
+    "Test article — build photograph 1",
+  ]);
 });

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { load } from "cheerio";
 import { validateWorkflow } from "../scripts/validate-workflows.mjs";
+import { cameraName, repetitionReport } from "../scripts/import-wordpress.mjs";
 
 test("archive preserves scoped records and recovered comments without WordPress/private dependencies", async () => {
   const archive = JSON.parse(await readFile("src/_data/archive.json", "utf8"));
@@ -43,6 +44,43 @@ test("archive preserves scoped records and recovered comments without WordPress/
       term.posts.every((url) => archive.posts.some((post) => post.url === url)),
     ),
   );
+  assert.equal(
+    repetitionReport([...archive.posts, ...archive.pages]).length,
+    0,
+    "Archive should have zero cross-post duplicate findings",
+  );
+  for (const post of archive.posts) {
+    assert.match(post.legacyUrl, /^\/\d{4}\/\d{2}\/\d{2}\/[a-z0-9-]+\/$/);
+  }
+  for (const entry of [...archive.posts, ...archive.pages]) {
+    assert(!entry.html.includes("rdsterhome.html"));
+    assert(!entry.html.includes("mcc.edu/factoryfive"));
+    assert(
+      !/More (?:pictures|photos)[^<]{0,40}in the (?:photo )?Gallery/i.test(
+        entry.html,
+      ),
+      `Obsolete gallery boilerplate remained in ${entry.title}`,
+    );
+    const $ = load(entry.html);
+    $("img").each((_, node) => {
+      const alt = $(node).attr("alt");
+      assert.notEqual(
+        alt,
+        undefined,
+        `Missing alt attribute in ${entry.title}`,
+      );
+      if (alt) {
+        assert(
+          !cameraName.test(alt),
+          `Camera/timestamp alt leaked in ${entry.title}: ${alt}`,
+        );
+        assert(
+          !alt.startsWith(`${entry.title}:`),
+          `Paragraph-dump fallback alt leaked in ${entry.title}: ${alt}`,
+        );
+      }
+    });
+  }
 });
 
 test("workflow policy rejects floating pins, wrong comments, unsafe triggers, and ungated deploys", () => {
