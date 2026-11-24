@@ -3,14 +3,20 @@ layout: layout.njk
 title: Search the archive
 permalink: /search/
 ---
-<h1>Search the archive</h1>
-<form id="search-form" action="/search/" method="get" role="search">
-  <label for="query">Search titles, articles, categories, and tags</label>
-  <div class="search-controls">
-    <input id="query" type="search" name="q">
-    <button type="submit">Search</button>
-  </div>
-</form>
-<p id="search-help">Search requires JavaScript. Browse the <a href="/">posts</a> or the category and tag links instead.</p>
-<p id="search-status" role="status" aria-live="polite"></p>
-<ul id="search-results"></ul>
+<section class="search-page">
+  <header class="archive-header">
+    <p class="archive-kicker">Archive Search</p>
+    <h1>Search the archive</h1>
+    <p class="archive-lead">Search across all {{ archive.posts.length }} build posts by title, article text, category, tag, or post number (e.g. <code>#36</code>).</p>
+  </header>
+  <form id="search-form" class="search-page-form" action="/search/" method="get" role="search" aria-label="Archive search">
+    <label for="query">Search titles, articles, categories, and tags</label>
+    <div class="search-controls">
+      <input id="query" type="search" name="q" placeholder="Try “engine”, “paint”, “wiring”, or “#36”…">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+  </form>
+  <p id="search-help" class="search-help">Search requires JavaScript. Browse <a href="/all-posts/">all {{ archive.posts.length }} posts</a> or the <a href="/topics/">categories and tags directory</a> instead.</p>
+  <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+  <ul id="search-results"></ul>
+</section>

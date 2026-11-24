@@ -1,0 +1,57 @@
+---
+layout: layout.njk
+title: All Build Posts
+description: Complete chronological index of all 44 Factory Five roadster build posts from February 2011 to March 2014.
+permalink: /all-posts/
+---
+{% set chronoPosts = archive.posts | chronological %}
+{% set yearGroups = chronoPosts | groupByYear %}
+<section class="directory-page">
+  <header class="archive-header">
+    <p class="archive-kicker">Complete Build Timeline</p>
+    <h1>All {{ archive.posts.length }} Build Posts</h1>
+    <p class="archive-lead">Every update from ordering the kit in February 2011 through finished paint and final assembly in March 2014.</p>
+    <div class="directory-toolbar">
+      <nav class="year-jumps" aria-label="Jump to year">
+        {% for group in yearGroups %}
+        <a class="jump-pill" href="#year-{{ group.year }}">{{ group.year }} <span class="jump-count">{{ group.posts.length }}</span></a>
+        {% endfor %}
+      </nav>
+      <div class="directory-controls" hidden>
+        <label class="visually-hidden" for="timeline-filter">Filter timeline posts</label>
+        <input id="timeline-filter" class="directory-filter" type="search" placeholder="Filter posts by title or #…" autocomplete="off">
+        <button type="button" id="timeline-order-toggle" class="btn btn-secondary" data-order="asc">Oldest first (#01 → #{{ archive.posts.length }})</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="timeline-groups" class="timeline-groups">
+    {% for group in yearGroups %}
+    <section id="year-{{ group.year }}" class="timeline-year" data-year="{{ group.year }}" aria-labelledby="heading-year-{{ group.year }}">
+      <h2 id="heading-year-{{ group.year }}" class="timeline-year-heading">
+        <span>{{ group.year }}</span>
+        <span class="timeline-year-count">{{ group.posts.length }} post{% if group.posts.length != 1 %}s{% endif %}</span>
+      </h2>
+      <ol class="timeline-list">
+        {% for item in group.posts %}
+        {% set num = archive.posts | postNumber(item.url) %}
+        <li class="timeline-item" data-num="{{ num }}" data-title="{{ item.title | lower | escape }}">
+          <a class="timeline-card" href="{{ item.url }}">
+            <span class="build-badge">#{{ num | padNumber }}</span>
+            <span class="timeline-main">
+              <span class="timeline-title">{{ item.title | escape }}</span>
+              <span class="timeline-meta">
+                <time datetime="{{ item.date }}">{{ item.date | readableDate }}</time>
+                {% if item.comments.length %} · {{ item.comments.length }} comment{% if item.comments.length != 1 %}s{% endif %}{% endif %}
+              </span>
+            </span>
+            <span class="timeline-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% endfor %}
+  </div>
+  <p id="timeline-empty" class="panel-empty" hidden>No build posts match that filter.</p>
+</section>

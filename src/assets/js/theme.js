@@ -14,6 +14,8 @@
   const apply = () => {
     const theme = current();
     document.documentElement.dataset.theme = theme;
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.content = preference ?? "light dark";
     const button = document.querySelector(".theme-toggle");
     if (button) {
       button.hidden = false;
@@ -27,9 +29,17 @@
   environment.addEventListener("change", () => {
     if (preference === null) apply();
   });
+  window.addEventListener("storage", (event) => {
+    if (event.key !== storageKey) return;
+    preference =
+      event.newValue === "light" || event.newValue === "dark"
+        ? event.newValue
+        : null;
+    apply();
+  });
   document.addEventListener("DOMContentLoaded", () => {
     apply();
-    document.querySelector(".theme-toggle").addEventListener("click", () => {
+    document.querySelector(".theme-toggle")?.addEventListener("click", () => {
       preference = current() === "dark" ? "light" : "dark";
       apply();
       try {

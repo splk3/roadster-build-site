@@ -62,19 +62,28 @@ applied automatically on every `npm run import`. See
 [the follow-up report](docs/migration-report.md) and its per-record
 [edit inventory](docs/migration-report.json).
 
-## Theme and archived comments
+## Theme, navigation, and archived comments
 
-Light mode follows the original blue navigation, italic title, roadster banner,
-serif articles, and pale sidebar design. Dark mode follows the same layout.
-The initial theme follows the local browser/OS preference, including later system
-changes until manually overridden. The header sun/moon button saves a manual
-choice in local storage. Blocked storage produces a diagnostic but does not
-prevent theme switching in the current session. Without JavaScript the site
-follows the system theme, hides the toggle, and remains readable/navigable.
+The site uses a single-column editorial layout with a compact sticky top bar
+that keeps navigation, an **All Posts** chronological jump menu (`#01`–`#44`),
+a **Topics** dropdown (categories and tags with live filtering), top-bar search,
+and light/dark controls reachable across desktop, laptop, tablet, and phone
+viewports. Full zero-JavaScript directory pages are available at `/all-posts/`
+and `/topics/`.
 
-Search runs locally in the browser. Without JavaScript, browse the paginated
-posts or category/tag archives. Comments are static historical content; there
-are no reply, login, feed, subscription, or sharing controls.
+Light and dark modes use a Roadster Crimson & Garage Slate palette coordinated
+with the red roadster hero banner. The initial theme follows the local
+browser/OS preference, including later system changes until manually overridden.
+The header sun/moon button saves a manual choice in local storage. Blocked
+storage produces a diagnostic but does not prevent theme switching in the
+current session. Without JavaScript the site follows the system theme, hides the
+toggle, and remains readable/navigable.
+
+Search runs locally in the browser and supports filtering by title, text,
+categories, tags, or build post number (e.g. `#36`). Without JavaScript, browse
+the paginated posts, `/all-posts/`, or `/topics/`. Comments are static
+historical content; there are no reply, login, feed, subscription, or sharing
+controls.
 
 ## GitHub Pages cutover
 

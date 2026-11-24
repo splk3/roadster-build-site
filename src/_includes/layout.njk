@@ -48,52 +48,221 @@
     {% endif %}
     <link rel="stylesheet" href="/assets/css/site.css">
     <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/nav.js" defer></script>
     <script src="/assets/js/search.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header>
-      <div class="nav-bar">
-        <nav aria-label="Main navigation">
-          {% for item in site.navigation %}
-          <a href="{{ item.url }}"{% if page.url == item.url or (item.url == "/" and (page.url.startsWith("/posts/") or page.url.startsWith("/page/"))) %} aria-current="page"{% endif %}>{{ item.title }}</a>
-          {% endfor %}
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="site-brand" href="/">
+          <img class="brand-icon" src="/assets/images/favicon.svg" alt="" width="28" height="28">
+          <span class="brand-name">Dan &amp; Pat’s Roadster</span>
+        </a>
+
+        <nav class="site-nav" aria-label="Main navigation">
+          <button
+            class="menu-button"
+            type="button"
+            popovertarget="site-menu"
+            popovertargetaction="toggle"
+            aria-controls="site-menu"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+            <span>Menu</span>
+          </button>
+
+          <ul id="site-menu" class="site-menu" popover="auto">
+            <li>
+              <a class="nav-link" href="/"{% if page.url == "/" or page.url.startsWith("/page/") %} aria-current="page"{% endif %}>Posts</a>
+            </li>
+            <li class="nav-dropdown nav-dropdown-posts">
+              <button
+                class="dropdown-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="all-posts-menu"
+                popovertarget="all-posts-menu"{% if page.url == "/all-posts/" or page.url.startsWith("/posts/") %} data-active="true"{% endif %}
+              >
+                <span>All Posts</span>
+                <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4"></path>
+                </svg>
+              </button>
+              <div id="all-posts-menu" class="dropdown-panel dropdown-panel-posts">
+                <div class="panel-header">
+                  <span class="panel-title">{{ archive.posts.length }} Build Posts (2011–2014)</span>
+                  <a class="panel-view-all" href="/all-posts/">Full timeline →</a>
+                </div>
+                <div class="panel-controls" hidden>
+                  <label class="visually-hidden" for="nav-post-filter">Filter all posts</label>
+                  <input id="nav-post-filter" class="panel-filter" type="search" placeholder="Filter by title or #…" autocomplete="off">
+                  <button type="button" class="panel-sort-toggle" data-order="asc" aria-label="Switch to newest posts first">#1 → #{{ archive.posts.length }}</button>
+                </div>
+                <ol id="nav-post-list" class="nav-post-list">
+                  {% for item in archive.posts | chronological %}
+                  <li data-num="{{ loop.index }}" data-title="{{ item.title | lower | escape }}">
+                    <a href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>
+                      <span class="nav-post-num">#{{ loop.index | padNumber }}</span>
+                      <span class="nav-post-title">{{ item.title | escape }}</span>
+                      <span class="nav-post-date">{{ item.date | monthYear }}</span>
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ol>
+                <p id="nav-post-empty" class="panel-empty" hidden>No matching posts.</p>
+              </div>
+            </li>
+            <li class="nav-dropdown nav-dropdown-topics">
+              <button
+                class="dropdown-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="topics-menu"
+                popovertarget="topics-menu"{% if page.url == "/topics/" or page.url.startsWith("/category/") or page.url.startsWith("/tag/") %} data-active="true"{% endif %}
+              >
+                <span>Topics</span>
+                <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4"></path>
+                </svg>
+              </button>
+              <div id="topics-menu" class="dropdown-panel dropdown-panel-topics">
+                <div class="panel-header">
+                  <span class="panel-title">Categories &amp; Tags</span>
+                  <a class="panel-view-all" href="/topics/">All topics →</a>
+                </div>
+                <div class="panel-controls panel-controls-stack" hidden>
+                  <label class="visually-hidden" for="nav-topic-filter">Filter categories and tags</label>
+                  <input id="nav-topic-filter" class="panel-filter" type="search" placeholder="Filter {{ archive.categories.length }} categories &amp; {{ archive.tags.length }} tags…" autocomplete="off">
+                  <div class="topic-tabs" role="group" aria-label="Topic type">
+                    <button type="button" class="topic-tab is-active" data-topic-tab="categories" aria-pressed="true">Categories ({{ archive.categories.length }})</button>
+                    <button type="button" class="topic-tab" data-topic-tab="tags" aria-pressed="false">Tags ({{ archive.tags.length }})</button>
+                  </div>
+                </div>
+                <div class="topic-scroll">
+                  <div class="topic-section" data-topic-section="categories">
+                    <p class="topic-section-label">Categories ({{ archive.categories.length }})</p>
+                    <ul class="nav-topic-list">
+                      {% for term in archive.categories %}
+                      <li data-term="{{ term.title | lower | escape }}">
+                        <a href="{{ term.url }}"{% if page.url == term.url %} aria-current="page"{% endif %}>
+                          <span class="term-name">{{ term.title | escape }}</span>
+                          <span class="term-count">{{ term.posts.length }}</span>
+                        </a>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <div class="topic-section" data-topic-section="tags">
+                    <p class="topic-section-label">Tags ({{ archive.tags.length }})</p>
+                    <ul class="nav-topic-list">
+                      {% for term in archive.tags %}
+                      <li data-term="{{ term.title | lower | escape }}">
+                        <a href="{{ term.url }}"{% if page.url == term.url %} aria-current="page"{% endif %}>
+                          <span class="term-name">{{ term.title | escape }}</span>
+                          <span class="term-count">{{ term.posts.length }}</span>
+                        </a>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <p id="nav-topic-empty" class="panel-empty" hidden>No matching topics.</p>
+                </div>
+              </div>
+            </li>
+            {% for item in site.navigation %}
+            {% if item.url != "/" %}
+            <li>
+              <a class="nav-link" href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.title }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <button
+            class="search-toggle"
+            type="button"
+            popovertarget="header-search"
+            popovertargetaction="toggle"
+            aria-controls="header-search"
+            aria-label="Search the archive"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+          </button>
+
+          <div id="header-search" class="header-search-panel" popover="auto">
+            <form class="header-search-form" action="/search/" method="get" role="search" aria-label="Site search">
+              <label class="visually-hidden" for="archive-search">Search the archive</label>
+              <input id="archive-search" name="q" type="search" placeholder="Search build…" autocomplete="off">
+              <button class="header-search-submit" type="submit" aria-label="Submit search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                </svg>
+              </button>
+            </form>
+          </div>
+
           <button class="theme-toggle" type="button" aria-label="Switch to dark mode" hidden>
             <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"></path></svg>
             <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A9 9 0 0 1 8.6 4a9 9 0 1 0 11.4 11.4Z"></path></svg>
           </button>
-        </nav>
-      </div>
-      <div class="masthead">
-        <a class="site-title" href="/">{{ site.title }}</a>
-        <p class="tagline">{{ site.description }}</p>
-        <img class="banner" src="{{ archive.banner.large }}" srcset="{{ archive.banner.srcset }}" sizes="(max-width: 1225px) 100vw, 1175px" alt="Red roadster body awaiting assembly" width="940" height="198" fetchpriority="high">
+        </div>
       </div>
     </header>
-    <div class="site-panel">
+
+    <div class="page-shell">
       <main id="main" tabindex="-1">
         {{ content | safe }}
       </main>
-      <aside aria-label="Archive navigation">
-        <form action="/search/" method="get" role="search">
-          <label for="archive-search">Search the archive</label>
-          <div class="search-controls">
-            <input id="archive-search" name="q" type="search">
-            <button type="submit">Search</button>
-          </div>
-        </form>
-        <h2>Categories</h2>
-        <ul class="taxonomy-list">
-          {% for term in archive.categories %}<li><a href="{{ term.url }}">{{ term.title | escape }}</a></li>{% endfor %}
-        </ul>
-        <h2>Tags</h2>
-        <ul class="taxonomy-list">
-          {% for term in archive.tags %}<li><a href="{{ term.url }}">{{ term.title | escape }}</a></li>{% endfor %}
-        </ul>
-      </aside>
     </div>
+
     <footer class="site-footer">
-      <p>A frozen archive of the 2011–2014 roadster build. Comments are preserved as originally published.</p>
+      <div class="footer-inner">
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="/">Home</a>
+          <a href="/all-posts/">All {{ archive.posts.length }} Posts</a>
+          <a href="/topics/">Topics</a>
+          <a href="/search/">Search</a>
+          <a href="/feed.xml">Atom Feed</a>
+        </nav>
+        <p class="footer-note">A frozen archive of the 2011–2014 Factory Five roadster build. Historical comments are preserved as originally published.</p>
+      </div>
     </footer>
+
+    <dialog id="photo-lightbox" class="photo-lightbox" closedby="any" aria-label="Build photograph viewer">
+      <div class="lightbox-frame">
+        <div class="lightbox-toolbar">
+          <span id="lightbox-counter" class="lightbox-counter"></span>
+          <div class="lightbox-actions">
+            <a id="lightbox-original" class="lightbox-link" href="/" target="_blank" rel="noopener">Open full image</a>
+            <form method="dialog">
+              <button type="submit" class="lightbox-close" aria-label="Close photograph viewer" autofocus>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="lightbox-stage">
+          <button type="button" id="lightbox-prev" class="lightbox-step" aria-label="Previous photograph">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <figure class="lightbox-figure">
+            <img id="lightbox-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
+            <figcaption id="lightbox-caption"></figcaption>
+          </figure>
+          <button type="button" id="lightbox-next" class="lightbox-step" aria-label="Next photograph">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+        </div>
+      </div>
+    </dialog>
   </body>
 </html>

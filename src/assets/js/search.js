@@ -73,16 +73,28 @@
       if (invocation !== request) return;
       const words = value.toLocaleLowerCase().split(/\s+/);
       const matches = index.filter((post) => {
+        const num = post.number ? String(post.number) : "";
+        const padded = num ? num.padStart(2, "0") : "";
         const text =
-          `${post.title} ${post.text} ${post.terms.map((term) => term.title).join(" ")}`.toLocaleLowerCase();
+          `#${num} #${padded} ${num} ${post.title} ${post.text} ${post.terms.map((term) => term.title).join(" ")}`.toLocaleLowerCase();
         return words.every((word) => text.includes(word));
       });
       for (const post of matches) {
         const item = document.createElement("li");
+        const head = document.createElement("div");
+        head.className = "search-result-head";
+        if (post.number) {
+          const badge = document.createElement("span");
+          badge.className = "build-badge";
+          badge.textContent = `Post #${String(post.number).padStart(2, "0")}`;
+          head.append(badge);
+        }
         const link = document.createElement("a");
+        link.className = "search-result-link";
         link.href = post.url;
         link.textContent = post.title;
-        item.append(link);
+        head.append(link);
+        item.append(head);
         if (post.dateFormatted) {
           const meta = document.createElement("p");
           meta.className = "search-meta";
@@ -100,7 +112,7 @@
       if (invocation !== request) return;
       console.error("Archive search unavailable", error);
       status.textContent =
-        "Search is unavailable. Please browse the posts or category/tag archives.";
+        "Search is unavailable. Please browse all posts or the topics directory.";
     }
   };
 

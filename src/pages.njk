@@ -9,7 +9,9 @@ eleventyComputed:
   title: "{{ article.title }}"
   description: "{{ article.description }}"
 ---
-<article>
-  <h1>{{ article.title | escape }}</h1>
+<article class="single-post static-page">
+  <header class="article-header">
+    <h1>{{ article.title | escape }}</h1>
+  </header>
   <div class="entry-content">{{ article.html | safe }}</div>
 </article>

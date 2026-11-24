@@ -1,6 +1,18 @@
 {% if post.categories.length or post.tags.length %}
-<p class="post-terms">
-  {% for term in post.categories %}<a href="{{ term.url }}">{{ term.title | escape }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
-  {% if post.tags.length %}<span> · Tags: </span>{% for term in post.tags %}<a href="{{ term.url }}">{{ term.title | escape }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
-</p>
+<div class="post-terms">
+  {% if post.categories.length %}
+  <ul class="term-chip-list">
+    {% for term in post.categories %}
+    <li><a class="term-chip" href="{{ term.url }}">{{ term.title | escape }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if post.tags.length %}
+  <ul class="term-chip-list term-chip-list-tags">
+    {% for term in post.tags %}
+    <li><a class="term-chip term-chip-tag" href="{{ term.url }}">#{{ term.title | escape }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
 {% endif %}

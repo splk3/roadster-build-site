@@ -6,12 +6,56 @@ pagination:
   alias: listing
 permalink: "{{ listing.url }}"
 ---
-<h1 class="visually-hidden">Posts{% if listing.number > 1 %}, page {{ listing.number }}{% endif %}</h1>
-{% for post in listing.posts %}{% include "post-summary.njk" %}{% endfor %}
+{% if listing.number == 1 %}
+<section class="hero" aria-label="Site introduction">
+  <div class="hero-media">
+    <img class="banner" src="{{ archive.banner.large }}" srcset="{{ archive.banner.srcset }}" sizes="(max-width: 1120px) 100vw, 1088px" alt="Red roadster body awaiting assembly" width="940" height="198" fetchpriority="high">
+  </div>
+  <div class="hero-body">
+    <div class="hero-copy">
+      <p class="hero-kicker">2011–2014 Build Archive</p>
+      <h1>{{ site.title }}</h1>
+      <p class="tagline">{{ site.description }}</p>
+    </div>
+    <div class="hero-actions">
+      {% set firstPost = archive.posts | last %}
+      <a class="btn btn-primary" href="{{ firstPost.url }}">Start at Post #01 →</a>
+      <a class="btn btn-secondary" href="/all-posts/">All {{ archive.posts.length }} Posts</a>
+    </div>
+  </div>
+  <dl class="hero-stats">
+    <div>
+      <dt>Build Posts</dt>
+      <dd>{{ archive.posts.length }}</dd>
+    </div>
+    <div>
+      <dt>Timeline</dt>
+      <dd>2011–2014</dd>
+    </div>
+    <div>
+      <dt>Topics</dt>
+      <dd><a href="/topics/">{{ archive.categories.length }} Categories · {{ archive.tags.length }} Tags</a></dd>
+    </div>
+    <div>
+      <dt>Comments</dt>
+      <dd>{{ archive.posts | totalComments }}</dd>
+    </div>
+  </dl>
+</section>
+{% else %}
+<header class="archive-header">
+  <p class="archive-kicker">Build Journal</p>
+  <h1>Posts — Page {{ listing.number }} of {{ archive.home.length }}</h1>
+  <p class="archive-lead">Showing newest to oldest. Want to jump directly to a build milestone? <a href="/all-posts/">View all {{ archive.posts.length }} posts in order</a>.</p>
+</header>
+{% endif %}
+<div class="post-feed">
+  {% for post in listing.posts %}{% include "post-summary.njk" %}{% endfor %}
+</div>
 <nav class="pagination" aria-label="Posts pagination">
-  {% if listing.previous %}<a href="{{ listing.previous }}">← Newer posts</a>{% endif %}
-  <span>Page {{ listing.number }} of {{ archive.home.length }}</span>
-  {% if listing.next %}<a href="{{ listing.next }}">Older posts →</a>{% endif %}
+  {% if listing.previous %}<a class="pagination-link" href="{{ listing.previous }}">← Newer posts</a>{% else %}<span></span>{% endif %}
+  <span class="pagination-status">Page {{ listing.number }} of {{ archive.home.length }}</span>
+  {% if listing.next %}<a class="pagination-link" href="{{ listing.next }}">Older posts →</a>{% else %}<span></span>{% endif %}
 </nav>
 {% if listing.number == 1 %}
 <script>

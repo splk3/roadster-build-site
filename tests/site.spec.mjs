@@ -25,7 +25,8 @@ test("archive navigation, photos, static comments, and missing routes work", asy
     .toBe(true);
   const imageHref = await firstImage.locator("..").getAttribute("href");
   expect((await page.request.get(imageHref)).status()).toBe(200);
-  await page.locator("aside .taxonomy-list a").first().click();
+  await page.getByRole("button", { name: "Topics" }).click();
+  await page.locator("#topics-menu .nav-topic-list a").first().click();
   await expect(page.locator(".post-summary").first()).toBeVisible();
   const response = await page.goto("/not-in-the-archive/");
   expect(response.status()).toBe(404);
@@ -33,6 +34,65 @@ test("archive navigation, photos, static comments, and missing routes work", asy
     page.getByRole("heading", { name: "Page not found" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("all posts dropdown, topics dropdown, top search, directories, and lightbox work", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "All Posts" }).click();
+  await expect(page.locator("#nav-post-list li")).toHaveCount(44);
+  await page.locator("#nav-post-filter").fill("36");
+  await expect(page.locator("#nav-post-list li:not([hidden])")).toHaveCount(1);
+  await page.locator("#nav-post-list li:not([hidden]) a").click();
+  await expect(page).toHaveURL(/\/posts\/first-engine-start\/$/);
+  await expect(page.locator(".article-header .build-badge")).toContainText(
+    "Post #36 of 44",
+  );
+
+  // Lightbox progressive enhancement on post photos
+  await page.goto("/posts/finished-paint-and-final-assembly/");
+  const photoLink = page
+    .locator(".single-post .entry-content a[data-lightbox-index]")
+    .first();
+  await expect(photoLink).toBeVisible();
+  await photoLink.click();
+  await expect(page.locator("#photo-lightbox")).toBeVisible();
+  await expect(page.locator("#lightbox-counter")).toContainText("Photo 1 of");
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#lightbox-counter")).toContainText("Photo 2 of");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#photo-lightbox")).toBeHidden();
+
+  // Topics dropdown tab switch & filtering
+  await page.getByRole("button", { name: "Topics" }).click();
+  await page.getByRole("button", { name: /^Tags \(/ }).click();
+  await expect(
+    page.locator('[data-topic-section="tags"] .nav-topic-list a').first(),
+  ).toBeVisible();
+  await page.locator("#nav-topic-filter").fill("wiring");
+  await expect(
+    page.locator("#topics-menu .nav-topic-list li:not([hidden])").first(),
+  ).toBeVisible();
+
+  // Top-bar search submission
+  await page.locator("#archive-search").fill("#36");
+  await page.locator("#archive-search").press("Enter");
+  await expect(page).toHaveURL(/\/search\/\?q=%2336/);
+  await expect(page.locator("#search-results")).toContainText(
+    "First Engine Start",
+  );
+
+  // Dedicated All Posts timeline and Topics directory
+  await page.goto("/all-posts/");
+  await expect(page.locator(".timeline-item")).toHaveCount(44);
+  await page.locator("#timeline-order-toggle").click();
+  await expect(page.locator(".timeline-item").first()).toContainText("#44");
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.goto("/topics/");
+  await expect(page.locator(".letter-group").first()).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test("search has matches, no-result states, safe text, and explicit fetch errors", async ({
@@ -132,13 +192,15 @@ test("content remains usable without JavaScript and honors system dark mode", as
     page.getByRole("heading", { name: "About", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".theme-toggle")).toBeHidden();
+  await page.goto("http://127.0.0.1:4178/all-posts/");
+  await expect(page.locator(".timeline-item")).toHaveCount(44);
   await page.goto("http://127.0.0.1:4178/search/");
   await expect(page.locator("#search-help")).toContainText(
     "Search requires JavaScript",
   );
   expect(
     await page.evaluate(() => getComputedStyle(document.body).backgroundColor),
-  ).toBe("rgb(23, 27, 34)");
+  ).toBe("rgb(15, 18, 24)");
   await context.close();
 });
 
@@ -157,10 +219,10 @@ for (const theme of ["light", "dark"]) {
   });
 }
 
-test("mobile layout has no horizontal overflow and a stable visual baseline", async ({
+test("tablet and mobile layouts have no horizontal overflow and accessible top-bar controls", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 768, height: 1024 });
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   expect(
@@ -168,5 +230,28 @@ test("mobile layout has no horizontal overflow and a stable visual baseline", as
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBeTruthy();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  const headerHeight = await page
+    .locator(".site-header")
+    .evaluate((el) => el.getBoundingClientRect().height);
+  expect(headerHeight).toBeLessThanOrEqual(72);
+
   await expect(page).toHaveScreenshot("homepage-mobile.png");
+
+  // Verify 1-tap search popover and menu popover work on mobile
+  await page.getByRole("button", { name: "Search the archive" }).click();
+  await expect(page.locator("#archive-search")).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await page.locator(".menu-button").click();
+  await expect(page.locator("#site-menu")).toBeVisible();
+  await page.getByRole("button", { name: "All Posts" }).click();
+  await expect(page.locator("#nav-post-list")).toBeVisible();
 });
