@@ -42,6 +42,10 @@ export default [
         CSS: "readonly",
         requestAnimationFrame: "readonly",
         matchMedia: "readonly",
+        Image: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        location: "readonly",
       },
     },
     rules: {

@@ -4,6 +4,7 @@ import { resolve, join } from "node:path";
 import { load } from "cheerio";
 import { HtmlValidate } from "html-validate";
 import { spamHost } from "./import-wordpress.mjs";
+import { loadGalleryData } from "./gallery-data.mjs";
 
 const root = resolve("_site");
 const files = [];
@@ -28,12 +29,16 @@ assert.equal(
   archive.posts.reduce((count, post) => count + post.comments.length, 0),
   20,
 );
+const gallery = await loadGalleryData();
+assert(gallery.albums.length > 0, "Expected at least one gallery album");
 const routes = [
-  ...archive.posts,
-  ...archive.pages,
-  ...archive.terms,
-  ...archive.home,
-].map((entry) => entry.url);
+  ...archive.posts.map((entry) => entry.url),
+  ...archive.pages.map((entry) => entry.url),
+  ...archive.terms.map((entry) => entry.url),
+  ...archive.home.map((entry) => entry.url),
+  "/gallery/",
+  ...gallery.albums.map((album) => album.url),
+];
 assert.equal(new Set(routes).size, routes.length, "Duplicate routes");
 const validator = new HtmlValidate({
   extends: ["html-validate:recommended"],
@@ -78,6 +83,7 @@ for (const file of files.filter((file) => file.endsWith(".html"))) {
 }
 const allFiles = new Set(files);
 const referencedImages = new Set();
+const referencedGalleryAssets = new Set();
 for (const [file, { $ }] of documents) {
   const references = [];
   $("[href], [src]").each((_, node) => {
@@ -115,10 +121,19 @@ for (const [file, { $ }] of documents) {
       );
     }
     if (target.includes("/assets/images/")) referencedImages.add(target);
+    if (target.includes("/assets/gallery/")) {
+      referencedGalleryAssets.add(target);
+    }
   }
 }
 for (const file of files.filter((file) => file.includes("/assets/images/"))) {
   assert(referencedImages.has(file), `Unreferenced deployed image ${file}`);
+}
+for (const file of files.filter((file) => file.includes("/assets/gallery/"))) {
+  assert(
+    referencedGalleryAssets.has(file),
+    `Unreferenced deployed gallery asset ${file}`,
+  );
 }
 for (const route of routes) {
   assert(
@@ -155,5 +170,5 @@ assert(
   ),
 );
 console.log(
-  `Validated ${documents.size} HTML pages, ${referencedImages.size} images, all links/fragments, 44 search entries; ${(size / 1024 / 1024).toFixed(1)} MiB.`,
+  `Validated ${documents.size} HTML pages, ${referencedImages.size} post images, ${referencedGalleryAssets.size} gallery assets (${gallery.albums.length} albums), all links/fragments, 44 search entries; ${(size / 1024 / 1024).toFixed(1)} MiB.`,
 );

@@ -14,7 +14,7 @@
     <meta property="og:title" content="{{ (title or site.title) | escape }}">
     <meta property="og:description" content="{{ (description or site.description) | escape }}">
     <meta property="og:url" content="{{ page.url | absolute }}">
-    {% set ogImage = (post.html | firstImage) or archive.banner.large %}
+    {% set ogImage = (album.cover.fullUrl if album else null) or (post.html | firstImage) or archive.banner.large %}
     <meta property="og:image" content="{{ ogImage | absolute }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ (title or site.title) | escape }}">
@@ -49,6 +49,7 @@
     <link rel="stylesheet" href="/assets/css/site.css">
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/nav.js" defer></script>
+    <script src="/assets/js/gallery.js" defer></script>
     <script src="/assets/js/search.js" defer></script>
   </head>
   <body>
@@ -175,7 +176,7 @@
             {% for item in site.navigation %}
             {% if item.url != "/" %}
             <li>
-              <a class="nav-link" href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.title }}</a>
+              <a class="nav-link" href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% elif item.url == "/gallery/" and page.url.startsWith("/gallery/") %} data-active="true"{% endif %}>{{ item.title }}</a>
             </li>
             {% endif %}
             {% endfor %}
@@ -229,6 +230,7 @@
         <nav class="footer-nav" aria-label="Footer navigation">
           <a href="/">Home</a>
           <a href="/all-posts/">All {{ archive.posts.length }} Posts</a>
+          <a href="/gallery/">Photo Gallery</a>
           <a href="/topics/">Topics</a>
           <a href="/search/">Search</a>
           <a href="/feed.xml">Atom Feed</a>
@@ -240,8 +242,12 @@
     <dialog id="photo-lightbox" class="photo-lightbox" closedby="any" aria-label="Build photograph viewer">
       <div class="lightbox-frame">
         <div class="lightbox-toolbar">
-          <span id="lightbox-counter" class="lightbox-counter"></span>
+          <div class="lightbox-status">
+            <span id="lightbox-counter" class="lightbox-counter"></span>
+            <span id="lightbox-meta" class="lightbox-meta"></span>
+          </div>
           <div class="lightbox-actions">
+            <button type="button" id="lightbox-slideshow" class="lightbox-control" aria-pressed="false" hidden>Slideshow</button>
             <a id="lightbox-original" class="lightbox-link" href="/" target="_blank" rel="noopener">Open full image</a>
             <form method="dialog">
               <button type="submit" class="lightbox-close" aria-label="Close photograph viewer" autofocus>
@@ -262,6 +268,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
           </button>
         </div>
+        <section id="lightbox-filmstrip" class="lightbox-filmstrip" aria-label="Photograph thumbnails" hidden></section>
       </div>
     </dialog>
   </body>

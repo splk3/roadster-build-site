@@ -6,7 +6,9 @@ eleventyExcludeFromCollections: true
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>{{ "/" | absolute | xml | safe }}</loc></url>
   <url><loc>{{ "/all-posts/" | absolute | xml | safe }}</loc></url>
+  <url><loc>{{ "/gallery/" | absolute | xml | safe }}</loc></url>
   <url><loc>{{ "/topics/" | absolute | xml | safe }}</loc></url>
+  {% for album in gallery.albums %}<url><loc>{{ album.url | absolute | xml | safe }}</loc></url>{% endfor %}
   {% for entry in archive.posts | concat(archive.pages) %}<url><loc>{{ entry.url | absolute | xml | safe }}</loc><lastmod>{{ entry.date }}</lastmod></url>{% endfor %}
   {% for term in archive.terms %}<url><loc>{{ term.url | absolute | xml | safe }}</loc></url>{% endfor %}
 </urlset>

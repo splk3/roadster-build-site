@@ -194,6 +194,11 @@ test("content remains usable without JavaScript and honors system dark mode", as
   await expect(page.locator(".theme-toggle")).toBeHidden();
   await page.goto("http://127.0.0.1:4178/all-posts/");
   await expect(page.locator(".timeline-item")).toHaveCount(44);
+  await page.goto("http://127.0.0.1:4178/gallery/");
+  await expect(page.locator(".album-card-item")).toHaveCount(36);
+  await page.goto("http://127.0.0.1:4178/gallery/body-buck/");
+  await expect(page.locator(".gallery-photo-link")).toHaveCount(20);
+  await expect(page.locator(".album-actions")).toBeHidden();
   await page.goto("http://127.0.0.1:4178/search/");
   await expect(page.locator("#search-help")).toContainText(
     "Search requires JavaScript",
@@ -254,4 +259,119 @@ test("tablet and mobile layouts have no horizontal overflow and accessible top-b
   await expect(page.locator("#site-menu")).toBeVisible();
   await page.getByRole("button", { name: "All Posts" }).click();
   await expect(page.locator("#nav-post-list")).toBeVisible();
+});
+
+test("photo gallery albums, lightbox navigation, bidirectional post links, and accessibility work", async ({
+  page,
+}) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("link", { name: "Gallery", exact: true }).click();
+  await expect(page).toHaveURL(/\/gallery\/$/);
+  await expect(page.locator(".album-card-item")).toHaveCount(36);
+
+  // Filter and sort albums
+  await page.locator("#gallery-album-filter").fill("engine");
+  const filteredCount = await page
+    .locator(".album-card-item:not([hidden])")
+    .count();
+  expect(filteredCount).toBeGreaterThanOrEqual(5);
+  await expect(page.locator("#gallery-album-status")).toContainText("Showing");
+  await page.locator("#gallery-album-filter").fill("");
+  await expect(page.locator(".album-card-item:not([hidden])")).toHaveCount(36);
+
+  await page.locator("#gallery-album-sort").selectOption("count");
+  await expect(
+    page.locator(".album-card-item").first().locator(".album-card-title"),
+  ).toHaveText("Finished Paint and Final Assembly");
+
+  // Open an album page and verify thumbnails + viewer features
+  await page.goto("/gallery/body-buck/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Body Buck");
+  await expect(page.locator(".gallery-photo-link")).toHaveCount(20);
+  const firstThumb = page.locator(".gallery-photo-link img").first();
+  await expect
+    .poll(() =>
+      firstThumb.evaluate((img) => img.complete && img.naturalWidth > 0),
+    )
+    .toBe(true);
+
+  // Toggle compact grid
+  await page.locator("#album-density-toggle").click();
+  await expect(page.locator("#album-photo-grid")).toHaveClass(/is-compact/);
+
+  // Lightbox navigation: click, keyboard arrows/End/Home, filmstrip, slideshow, Escape
+  await page.locator(".gallery-photo-link").first().click();
+  await expect(page.locator("#photo-lightbox")).toBeVisible();
+  await expect(page.locator("#lightbox-counter")).toHaveText("Photo 1 of 20");
+  await expect(page.locator(".lightbox-thumb")).toHaveCount(20);
+  await expect(page).toHaveURL(/#photo-1$/);
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#lightbox-counter")).toHaveText("Photo 2 of 20");
+  await expect(page).toHaveURL(/#photo-2$/);
+
+  await page.keyboard.press("End");
+  await expect(page.locator("#lightbox-counter")).toHaveText("Photo 20 of 20");
+  await page.keyboard.press("Home");
+  await expect(page.locator("#lightbox-counter")).toHaveText("Photo 1 of 20");
+
+  await page.locator(".lightbox-thumb").nth(4).click();
+  await expect(page.locator("#lightbox-counter")).toHaveText("Photo 5 of 20");
+
+  await page.locator("#lightbox-slideshow").click();
+  await expect(page.locator("#lightbox-slideshow")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.locator("#lightbox-slideshow").click();
+  await expect(page.locator("#lightbox-slideshow")).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#photo-lightbox")).toBeHidden();
+  await expect(page).toHaveURL(/\/gallery\/body-buck\/$/);
+
+  // Bidirectional links: Album -> Post -> Album
+  await page
+    .locator(".album-related-posts a", { hasText: "Body Buck Completed" })
+    .click();
+  await expect(page).toHaveURL(/\/posts\/body-buck-completed\/$/);
+  await expect(page.locator(".related-albums")).toBeVisible();
+  await page.locator(".related-albums a", { hasText: "Body Buck" }).click();
+  await expect(page).toHaveURL(/\/gallery\/body-buck\/$/);
+
+  // Multi-album post callout check
+  await page.goto("/posts/finished-paint-and-final-assembly/");
+  await expect(page.locator(".related-album-card")).toHaveCount(2);
+
+  // Accessibility checks on gallery & album pages in light and dark themes
+  for (const theme of ["light", "dark"]) {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.goto("/gallery/");
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.goto("/gallery/body-buck/");
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  }
+
+  // Mobile zero-overflow check on gallery pages
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/gallery/");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.goto("/gallery/body-buck/");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+
+  expect(errors).toEqual([]);
 });

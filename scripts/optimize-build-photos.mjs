@@ -25,7 +25,7 @@ import { parseArgs } from "node:util";
 import sharp from "sharp";
 
 export const defaultInputDir = "tmp/Roadster Build Photos";
-export const defaultOutputDir = "tmp/roadster-build-photos-optimized";
+export const defaultOutputDir = "src/assets/gallery";
 export const defaultExistingImagesDir = "src/assets/images";
 
 const supportedImageExts = new Set([
@@ -364,6 +364,7 @@ function allocateOutputPaths(albumSlug, sourcePath, format, slugify, used) {
 function isSafeToClean(resolvedOutputDir, cwd = process.cwd()) {
   const relToTmp = relative(resolve(cwd, "tmp"), resolvedOutputDir);
   if (relToTmp && !relToTmp.startsWith("..") && relToTmp !== ".") return true;
+  if (resolvedOutputDir === resolve(cwd, defaultOutputDir)) return true;
   if (existsSync(join(resolvedOutputDir, "manifest.json"))) return true;
   return false;
 }
@@ -371,6 +372,7 @@ function isSafeToClean(resolvedOutputDir, cwd = process.cwd()) {
 export async function optimizeBuildPhotos({
   inputDir = defaultInputDir,
   outputDir = defaultOutputDir,
+  manifestPath = null,
   existingImagesDir = defaultExistingImagesDir,
   format = "webp",
   maxEdge = 1600,
@@ -629,10 +631,11 @@ export async function optimizeBuildPhotos({
   };
 
   if (!dryRun) {
-    await writeFile(
-      join(resolvedOutput, "manifest.json"),
-      JSON.stringify(manifest, null, 2) + "\n",
-    );
+    const resolvedManifest = manifestPath
+      ? resolve(manifestPath)
+      : join(resolvedOutput, "manifest.json");
+    await mkdir(dirname(resolvedManifest), { recursive: true });
+    await writeFile(resolvedManifest, JSON.stringify(manifest, null, 2) + "\n");
   }
 
   return manifest;
@@ -644,6 +647,7 @@ function parseCliArgs(argv) {
     options: {
       input: { type: "string", default: defaultInputDir },
       output: { type: "string", default: defaultOutputDir },
+      manifest: { type: "string" },
       "existing-images": { type: "string", default: defaultExistingImagesDir },
       format: { type: "string", default: "webp" },
       "max-edge": { type: "string", default: "1600" },
@@ -663,6 +667,7 @@ function parseCliArgs(argv) {
   return {
     inputDir: values.input,
     outputDir: values.output,
+    ...(values.manifest ? { manifestPath: values.manifest } : {}),
     existingImagesDir: values["existing-images"],
     format: values.format.toLowerCase(),
     maxEdge: Number.parseInt(values["max-edge"], 10),

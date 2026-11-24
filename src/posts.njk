@@ -26,6 +26,7 @@ eleventyComputed:
     <h1>{{ post.title | escape }}</h1>
   </header>
   <div class="entry-content">{{ post.html | safe }}</div>
+  {% include "related-albums.njk" %}
   <footer class="article-footer">
     {% include "terms.njk" %}
   </footer>

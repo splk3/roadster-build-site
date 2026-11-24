@@ -1,0 +1,72 @@
+---
+layout: layout.njk
+title: Photo Gallery
+description: Browse all 1,707 Factory Five roadster build photographs organized into 36 build albums from 2011 to 2014.
+permalink: /gallery/
+---
+<section class="directory-page gallery-page">
+  <header class="archive-header">
+    <p class="archive-kicker">Build Photo Archive</p>
+    <h1>Photo Gallery</h1>
+    <p class="archive-lead">{{ gallery.totalPhotos }} build photographs organized into {{ gallery.totalAlbums }} albums across the 2011–2014 Factory Five roadster build.</p>
+    <div class="directory-controls" hidden>
+      <label class="visually-hidden" for="gallery-album-filter">Filter photo albums</label>
+      <input
+        id="gallery-album-filter"
+        class="directory-filter"
+        type="search"
+        placeholder="Filter albums by name, topic, or post # (e.g. engine, paint, #36)…"
+        autocomplete="off"
+      >
+      <label class="visually-hidden" for="gallery-album-sort">Sort albums</label>
+      <select id="gallery-album-sort" class="directory-select">
+        <option value="build">Sort: Build order</option>
+        <option value="alpha">Sort: A → Z</option>
+        <option value="count">Sort: Most photos</option>
+      </select>
+    </div>
+    <p id="gallery-album-status" class="gallery-status" aria-live="polite" hidden></p>
+  </header>
+
+  <ol id="gallery-album-grid" class="gallery-album-grid">
+    {% for album in gallery.albums %}
+    <li
+      class="album-card-item"
+      data-order="{{ album.sortIndex }}"
+      data-title="{{ album.title | lower | escape }}"
+      data-count="{{ album.photoCount }}"
+      data-search="{{ album.searchText | escape }}"
+    >
+      <article class="album-card">
+        <a class="album-card-link" href="{{ album.url }}">
+          <div class="album-card-media">
+            <img
+              src="{{ album.cover.thumbUrl }}"
+              alt="{{ album.cover.alt | escape }}"
+              width="{{ album.cover.thumbWidth }}"
+              height="{{ album.cover.thumbHeight }}"{% if loop.first %}
+              fetchpriority="high"{% elif loop.index > 4 %}
+              loading="lazy"{% endif %}
+              decoding="async"
+            >
+            <span class="album-count-badge">{{ album.photoCount }} photo{% if album.photoCount != 1 %}s{% endif %}</span>
+          </div>
+          <div class="album-card-body">
+            <p class="album-card-eyebrow">{{ album.periodLabel | escape }}</p>
+            <h2 class="album-card-title">{{ album.title | escape }}</h2>
+          </div>
+        </a>
+        {% if album.posts.length %}
+        <div class="album-card-posts">
+          {% for item in album.posts %}
+          <a class="album-post-pill" href="{{ item.url }}">Post #{{ item.paddedNumber }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </article>
+    </li>
+    {% endfor %}
+  </ol>
+
+  <p id="gallery-album-empty" class="panel-empty" hidden>No photo albums match that filter.</p>
+</section>
