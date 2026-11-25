@@ -31,14 +31,14 @@ permalink: /404.html
     const postName = params.get("name") || candidate;
     if (!postName && !postId) return;
 
-    fetch("/search-index.json")
+    fetch({{ "/search-index.json" | localUrl | json | safe }})
       .then((res) => {
         if (!res.ok) throw new Error(`Search index request failed (${res.status})`);
         return res.json();
       })
       .then((posts) => {
         const match = posts.find((p) => {
-          const slug = p.url.replace(/^\/posts\/|\/$/g, "");
+          const slug = p.url.split("/").filter(Boolean).pop();
           return slug === postName || (postId && String(p.id) === postId);
         });
         if (match) {

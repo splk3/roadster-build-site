@@ -1,4 +1,14 @@
+import { HtmlBasePlugin } from "@11ty/eleventy";
+import {
+  absoluteUrl,
+  deploymentUrl,
+  localUrl,
+} from "./scripts/deployment-url.mjs";
+
 export default function (eleventy) {
+  const base = deploymentUrl();
+  eleventy.addPlugin(HtmlBasePlugin, { baseHref: base.pathname });
+  eleventy.addFilter("localUrl", (path) => localUrl(path, base));
   eleventy.addTransform("trim-template-whitespace", (content) =>
     content.replace(/[ \t]+$/gm, ""),
   );
@@ -67,10 +77,7 @@ export default function (eleventy) {
   eleventy.addFilter("totalComments", (posts) =>
     posts.reduce((count, post) => count + (post.comments?.length ?? 0), 0),
   );
-  eleventy.addFilter(
-    "absolute",
-    (path) => new URL(path, "https://roadster.mightypirates.com").href,
-  );
+  eleventy.addFilter("absolute", (path) => absoluteUrl(path, base));
   eleventy.addFilter("json", (value) => JSON.stringify(value));
   eleventy.addFilter("concat", (left, right) => [...left, ...right]);
   eleventy.addFilter("findPost", (posts, url) =>

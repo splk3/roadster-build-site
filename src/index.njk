@@ -63,7 +63,7 @@ permalink: "{{ listing.url }}"
     const postId = new URLSearchParams(window.location.search).get("p");
     if (!postId || !/^\d+$/.test(postId)) return;
 
-    fetch("/search-index.json")
+    fetch({{ "/search-index.json" | localUrl | json | safe }})
       .then((res) => {
         if (!res.ok) throw new Error(`Search index request failed (${res.status})`);
         return res.json();

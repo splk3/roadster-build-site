@@ -65,7 +65,9 @@
     status.textContent = "Searching…";
     try {
       if (!index) {
-        const response = await fetch("/search-index.json");
+        const response = await fetch(
+          document.querySelector('meta[name="archive-search-index"]').content,
+        );
         if (!response.ok)
           throw new Error(`Search index request failed (${response.status})`);
         index = await response.json();
