@@ -261,6 +261,29 @@ test("tablet and mobile layouts have no horizontal overflow and accessible top-b
   await expect(page.locator("#nav-post-list")).toBeVisible();
 });
 
+test("navigation switches between wide and compact layouts when resized", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator(".site-header")).toHaveClass(/is-wide/);
+  await expect(
+    page.getByRole("link", { name: "Gallery", exact: true }),
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await expect(page.locator(".site-header")).not.toHaveClass(/is-wide/);
+  await page.getByRole("button", { name: "Menu" }).click();
+  await expect(
+    page.getByRole("link", { name: "Gallery", exact: true }),
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 1560, height: 1050 });
+  await expect(page.locator(".site-header")).toHaveClass(/is-wide/);
+  await expect(
+    page.getByRole("link", { name: "Gallery", exact: true }),
+  ).toBeVisible();
+});
+
 test("photo gallery albums, lightbox navigation, bidirectional post links, and accessibility work", async ({
   page,
 }) => {

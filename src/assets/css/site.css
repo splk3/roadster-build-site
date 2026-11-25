@@ -198,7 +198,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  max-inline-size: 1180px;
+  max-inline-size: 1320px;
   min-block-size: var(--header-height);
   margin-inline: auto;
   padding-inline: clamp(0.75rem, 2.5vw, 1.5rem);
