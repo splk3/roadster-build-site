@@ -142,6 +142,14 @@ export async function collectInputFiles(inputRoot) {
           for (const child of smallEntries) {
             const childPath = join(fullPath, child.name);
             const childRel = toPosixPath(relative(resolvedRoot, childPath));
+            if (child.isSymbolicLink()) {
+              skipped.push({
+                sourcePath: childRel,
+                reason: "symlink-excluded",
+                bytes: 0,
+              });
+              continue;
+            }
             if (child.isDirectory()) {
               await walk(childPath);
               continue;
@@ -414,9 +422,10 @@ export async function optimizeBuildPhotos({
   }
   if (
     resolvedOutput === resolvedInput ||
-    resolvedOutput.startsWith(`${resolvedInput}${sep}`)
+    resolvedOutput.startsWith(`${resolvedInput}${sep}`) ||
+    resolvedInput.startsWith(`${resolvedOutput}${sep}`)
   ) {
-    throw new Error("Output directory must not be inside the input directory");
+    throw new Error("Input and output directories must not overlap");
   }
 
   const existingHashes = await loadExistingSiteHashes(existingImagesDir);
