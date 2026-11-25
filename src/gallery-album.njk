@@ -66,7 +66,7 @@ eleventyComputed:
         href="{{ photo.fullUrl }}"
         data-photo-index="{{ loop.index0 }}"
         data-photo-id="{{ photo.id }}"
-        data-thumb="{{ photo.thumbUrl }}"
+        data-thumb="{{ photo.thumbUrl | localUrl }}"
         data-caption="{{ photo.caption | escape }}"
         data-meta="{{ photo.metaText | escape }}"
       >

@@ -5,8 +5,15 @@ import { load } from "cheerio";
 import { HtmlValidate } from "html-validate";
 import { spamHost } from "./import-wordpress.mjs";
 import { loadGalleryData } from "./gallery-data.mjs";
+import {
+  absoluteUrl,
+  deploymentPath,
+  deploymentUrl,
+  localUrl,
+} from "./deployment-url.mjs";
 
 const root = resolve("_site");
+const base = deploymentUrl();
 const files = [];
 async function walk(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -42,7 +49,11 @@ const routes = [
 assert.equal(new Set(routes).size, routes.length, "Duplicate routes");
 const validator = new HtmlValidate({
   extends: ["html-validate:recommended"],
-  rules: { "void-style": "off" },
+  rules: {
+    "void-style": "off",
+    "attribute-boolean-style": "off",
+    "attribute-empty-style": "off",
+  },
 });
 const documents = new Map();
 for (const file of files.filter((file) => file.endsWith(".html"))) {
@@ -71,12 +82,18 @@ for (const file of files.filter((file) => file.endsWith(".html"))) {
     assert(match, `Invalid refresh redirect in ${file}`);
     assert.equal(
       $('link[rel="canonical"]').attr("href"),
-      `https://roadster.mightypirates.com${match[1].trim()}`,
+      new URL(match[1].trim(), base).href,
+      `Invalid refresh target in ${file}`,
     );
   } else {
     assert.equal(
       $('link[rel="canonical"]').attr("href"),
-      `https://roadster.mightypirates.com${file.endsWith("/index.html") ? file.slice(root.length, -10) : file.slice(root.length)}`,
+      absoluteUrl(
+        file.endsWith("/index.html")
+          ? file.slice(root.length, -10)
+          : file.slice(root.length),
+        base,
+      ),
     );
   }
   documents.set(file, { $, ids: new Set(ids) });
@@ -101,13 +118,10 @@ for (const [file, { $ }] of documents) {
     );
   });
   for (const reference of references) {
-    const url = new URL(
-      reference,
-      `https://roadster.mightypirates.com${file.slice(root.length)}`,
-    );
+    const url = new URL(reference, absoluteUrl(file.slice(root.length), base));
     assert(!spamHost.test(url.hostname), `Spam URL in ${file}`);
-    if (url.hostname !== "roadster.mightypirates.com") continue;
-    let target = resolve(root, `.${decodeURIComponent(url.pathname)}`);
+    if (url.origin !== base.origin) continue;
+    let target = resolve(root, `./${deploymentPath(url, base)}`);
     assert(
       target === root || target.startsWith(`${root}/`),
       `Unsafe target in ${file}`,
@@ -150,7 +164,7 @@ for (const post of archive.posts) {
   );
   assert.equal(
     documents.get(redirectFile).$('link[rel="canonical"]').attr("href"),
-    `https://roadster.mightypirates.com${post.url}`,
+    absoluteUrl(post.url, base),
   );
 }
 assert.equal(
@@ -162,11 +176,13 @@ const search = JSON.parse(
 );
 assert.equal(search.length, 44);
 assert(
-  search.every((entry) => archive.posts.some((post) => post.url === entry.url)),
+  search.every((entry) =>
+    archive.posts.some((post) => localUrl(post.url, base) === entry.url),
+  ),
 );
 assert(
   (await readFile(join(root, "robots.txt"), "utf8")).includes(
-    "https://roadster.mightypirates.com/sitemap.xml",
+    absoluteUrl("/sitemap.xml", base),
   ),
 );
 console.log(

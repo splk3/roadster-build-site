@@ -20,7 +20,7 @@ eleventyExcludeFromCollections: true
     <id>{{ post.url | absolute | xml }}</id>
     <updated>{{ post.date }}T12:00:00Z</updated>
     <summary>{{ post.description | xml }}</summary>
-    <content type="html">{{ post.html | xml }}</content>
+    <content type="html">{{ post.html | transformWithHtmlBase | xml | safe }}</content>
   </entry>
   {% endfor %}
 </feed>

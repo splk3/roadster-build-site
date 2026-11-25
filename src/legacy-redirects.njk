@@ -16,7 +16,7 @@ eleventyExcludeFromCollections: true
     <link rel="canonical" href="{{ post.url | absolute }}">
     <meta http-equiv="refresh" content="0;url={{ post.url }}">
     <script>
-      window.location.replace({{ post.url | json | safe }} + window.location.hash);
+      window.location.replace({{ post.url | localUrl | json | safe }} + window.location.hash);
     </script>
   </head>
   <body>
