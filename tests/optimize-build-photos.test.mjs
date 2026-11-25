@@ -1,12 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { promisify } from "node:util";
 import sharp from "sharp";
+import { loadGalleryData } from "../scripts/gallery-data.mjs";
 import {
   cleanDisplayTitle,
   extractExifDate,
@@ -187,7 +190,8 @@ test("optimizeBuildPhotos filters non-photos and redundant - small folders, hand
       assert(existsSync(join(outputDir, photo.outputPath)));
       assert(existsSync(join(outputDir, photo.thumbPath)));
     }
-    assert(existsSync(join(outputDir, "manifest.json")));
+    assert(!existsSync(join(outputDir, "manifest.json")));
+    assert(existsSync(`${outputDir}-manifest.json`));
 
     const tankDup = manifest.photos.find(
       (photo) => photo.outputPath === "fuel-tank/dsc0001.webp",
@@ -236,9 +240,84 @@ test("optimizeBuildPhotos filters non-photos and redundant - small folders, hand
     assert.equal(filteredManifest.summary.processedPhotos, 2);
     assert.equal(filteredManifest.summary.thumbOutputBytes, 0);
     const savedManifest = JSON.parse(
-      await readFile(join(outputDir, "manifest.json"), "utf8"),
+      await readFile(`${outputDir}-manifest.json`, "utf8"),
     );
-    assert.equal(savedManifest.photos.length, 2);
+    assert.equal(Object.keys(savedManifest.photos).length, 2);
+
+    const explicitManifestPath = join(sandbox, "metadata", "gallery.json");
+    const options = {
+      inputDir,
+      outputDir,
+      existingImagesDir,
+      manifestPath: explicitManifestPath,
+      concurrency: 2,
+    };
+    await optimizeBuildPhotos({ ...options, dryRun: true });
+    assert(!existsSync(explicitManifestPath));
+    await optimizeBuildPhotos(options);
+    const explicitManifest = JSON.parse(
+      await readFile(explicitManifestPath, "utf8"),
+    );
+    assert.equal(
+      Object.keys(explicitManifest.photos).length,
+      manifest.photos.length,
+    );
+    assert.equal(explicitManifest.albums["fuel-tank"], "Fuel Tank");
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("default optimizer output writes gallery metadata outside published assets", async () => {
+  const sandbox = await mkdtemp(join(os.tmpdir(), "roadster-gallery-test-"));
+  try {
+    const inputDir = join(sandbox, "input");
+    const albumDir = join(inputDir, "Special Album");
+    await mkdir(albumDir, { recursive: true });
+    await writeFile(
+      join(albumDir, "Portrait.JPG"),
+      await createTestJpeg({ width: 120, height: 80, orientation: 6 }),
+    );
+
+    await promisify(execFile)(
+      process.execPath,
+      [
+        resolve("scripts/optimize-build-photos.mjs"),
+        "--input",
+        inputDir,
+        "--existing-images",
+        join(sandbox, "missing-images"),
+      ],
+      { cwd: sandbox },
+    );
+
+    const outputDir = join(sandbox, "src/assets/gallery");
+    const manifestPath = join(sandbox, "src/_data/gallery-manifest.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    assert.equal(manifest.albums["special-album"], "Special Album");
+    assert.deepEqual(manifest.photos["special-album/portrait.webp"], {
+      width: 80,
+      height: 120,
+      thumbPath: "special-album/thumbs/portrait.webp",
+      thumbWidth: 80,
+      thumbHeight: 120,
+      capturedAt: "2012-07-26T09:15:42",
+    });
+    assert(!existsSync(join(outputDir, "manifest.json")));
+    const gallery = await loadGalleryData({
+      galleryDir: outputDir,
+      manifestPath,
+      linksPath: join(sandbox, "missing-links.json"),
+      archivePath: join(sandbox, "missing-archive.json"),
+    });
+    assert.equal(gallery.totalPhotos, 1);
+    assert.equal(gallery.albums[0].title, "Special Album");
+    const photo = gallery.albums[0].photos[0];
+    assert.equal(photo.width, 80);
+    assert.equal(photo.height, 120);
+    assert.equal(photo.thumbWidth, 80);
+    assert.equal(photo.thumbHeight, 120);
+    assert.equal(photo.capturedAt, "2012-07-26T09:15:42");
   } finally {
     await rm(sandbox, { recursive: true, force: true });
   }

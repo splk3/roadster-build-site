@@ -26,6 +26,7 @@ import sharp from "sharp";
 
 export const defaultInputDir = "tmp/Roadster Build Photos";
 export const defaultOutputDir = "src/assets/gallery";
+export const defaultManifestPath = "src/_data/gallery-manifest.json";
 export const defaultExistingImagesDir = "src/assets/images";
 
 const supportedImageExts = new Set([
@@ -374,6 +375,7 @@ function isSafeToClean(resolvedOutputDir, cwd = process.cwd()) {
   if (relToTmp && !relToTmp.startsWith("..") && relToTmp !== ".") return true;
   if (resolvedOutputDir === resolve(cwd, defaultOutputDir)) return true;
   if (existsSync(join(resolvedOutputDir, "manifest.json"))) return true;
+  if (existsSync(`${resolvedOutputDir}-manifest.json`)) return true;
   return false;
 }
 
@@ -488,7 +490,7 @@ export async function optimizeBuildPhotos({
     if (cleanOutput && existsSync(resolvedOutput)) {
       if (!isSafeToClean(resolvedOutput)) {
         throw new Error(
-          `Refusing to clean existing output directory outside tmp/ without manifest.json: ${resolvedOutput}`,
+          `Refusing to clean existing output directory outside tmp/ without a recognized manifest: ${resolvedOutput}`,
         );
       }
       await rm(resolvedOutput, { recursive: true, force: true });
@@ -642,9 +644,32 @@ export async function optimizeBuildPhotos({
   if (!dryRun) {
     const resolvedManifest = manifestPath
       ? resolve(manifestPath)
-      : join(resolvedOutput, "manifest.json");
+      : resolvedOutput === resolve(defaultOutputDir)
+        ? resolve(defaultManifestPath)
+        : `${resolvedOutput}-manifest.json`;
+    const galleryManifest = {
+      albums: Object.fromEntries(
+        albums.map(({ slug, title }) => [slug, title]),
+      ),
+      photos: Object.fromEntries(
+        results.map((photo) => [
+          photo.outputPath,
+          {
+            width: photo.width,
+            height: photo.height,
+            thumbPath: photo.thumbPath,
+            thumbWidth: photo.thumbWidth,
+            thumbHeight: photo.thumbHeight,
+            capturedAt: photo.capturedAt,
+          },
+        ]),
+      ),
+    };
     await mkdir(dirname(resolvedManifest), { recursive: true });
-    await writeFile(resolvedManifest, JSON.stringify(manifest, null, 2) + "\n");
+    await writeFile(
+      resolvedManifest,
+      JSON.stringify(galleryManifest, null, 2) + "\n",
+    );
   }
 
   return manifest;

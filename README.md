@@ -62,6 +62,20 @@ applied automatically on every `npm run import`. See
 [the follow-up report](docs/migration-report.md) and its per-record
 [edit inventory](docs/migration-report.json).
 
+## Optimizing gallery photos
+
+`npm run optimize:photos` reads the private originals from
+`tmp/Roadster Build Photos`, replaces `src/assets/gallery`, and writes the
+gallery metadata to `src/_data/gallery-manifest.json`. This is a maintenance
+operation, not part of a normal build. Review the generated files and run the
+build and validation checks before committing them.
+
+For a custom `--output` directory, the metadata defaults to an adjacent
+`<output>-manifest.json` instead; use `--manifest` to choose another path.
+Keep that path outside published assets. The returned optimization report
+includes detailed statistics, while the written manifest contains the metadata
+used by the gallery.
+
 ## Theme, navigation, and archived comments
 
 The site uses a single-column editorial layout with a compact sticky top bar
