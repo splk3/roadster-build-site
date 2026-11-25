@@ -30,6 +30,24 @@ not need the private XML or the legacy export. Layouts live in `src/_includes/`,
 with local CSS, JavaScript, and optimized photographs in `src/assets/`.
 The build publishes **only `_site/`**, never the repository root.
 
+### Deployment URL and local previews
+
+`SITE_URL` is the full public HTTP(S) URL, including any deployment path. It
+defaults to `https://roadster.mightypirates.com/` for root-domain local builds.
+Use the same value for both the build and validation; for the current Pages
+project URL, for example:
+
+```sh
+export SITE_URL=https://splk3.github.io/roadster-build-site/
+npm run build
+npm run validate
+npx playwright test tests/project-path.spec.mjs
+```
+
+Unset `SITE_URL` to return to the default root build. `npm run dev` serves at
+the local root, so use the default root configuration for that preview. The
+project-path browser test serves the build under its configured path.
+
 ## Reimporting the historical export
 
 Keep the raw XML private, in ignored `tmp/` or another local backup. It includes
@@ -105,6 +123,13 @@ The deployment workflow runs on `main` pushes or manual dispatch on `main`.
 It calls the same lint/build/test gates as PR validation, uploads the validated
 artifact, and deploys only after all jobs pass. Fork PRs cannot deploy.
 Permissions are read-only except for the final Pages/OIDC deployment job.
+Before building the published artifact, the workflow obtains the configured
+Pages URL and passes it as `SITE_URL` to the build and validation. Thus the
+current project URL uses `/roadster-build-site/`, while a configured custom
+domain uses `/`. PR validation also checks both root and project-path builds.
+After changing Pages domain settings, rerun the deployment so generated URLs
+match the new domain. The committed `CNAME` records the intended custom domain;
+it does not configure the domain for an Actions deployment.
 
 1. Commit and push the reviewed migration to `main`.
 2. In repository Settings > Pages, select **GitHub Actions** as the build source.

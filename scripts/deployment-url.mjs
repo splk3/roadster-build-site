@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+
 const defaultUrl = "https://roadster.mightypirates.com/";
 
 export function deploymentUrl(value = process.env.SITE_URL || defaultUrl) {
@@ -26,4 +28,12 @@ export function localUrl(path, base = deploymentUrl()) {
 
 export function absoluteUrl(path, base = deploymentUrl()) {
   return new URL(localUrl(path, base), base.origin).href;
+}
+
+export function deploymentPath(url, base = deploymentUrl()) {
+  assert(
+    url.origin === base.origin && url.pathname.startsWith(base.pathname),
+    `URL outside deployment path: ${url.href}`,
+  );
+  return decodeURIComponent(url.pathname.slice(base.pathname.length));
 }

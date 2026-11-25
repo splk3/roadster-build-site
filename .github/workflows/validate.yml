@@ -48,11 +48,30 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        id: pages
+        if: inputs.publish
       - run: npm run build
       - run: npm test
       - run: npm run validate
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Check project-path deployment
+        env:
+          SITE_URL: https://splk3.github.io/roadster-build-site/
+        run: |
+          npm run build
+          npm run validate
+          npx playwright test tests/project-path.spec.mjs
+      - name: Build and validate deployment URL
+        if: inputs.publish
+        env:
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          test -n "$SITE_URL"
+          npm run build
+          npm run validate
+          npx playwright test tests/project-path.spec.mjs
       - name: Upload browser diagnostics
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -63,8 +82,6 @@ jobs:
             test-results/
           retention-days: 7
           if-no-files-found: ignore
-      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-        if: inputs.publish
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: inputs.publish
         with:
