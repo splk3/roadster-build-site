@@ -1,0 +1,71 @@
+---
+layout: layout.njk
+pagination:
+  data: archive.posts
+  size: 1
+  alias: post
+permalink: "{{ post.url }}"
+eleventyComputed:
+  title: "{{ post.title }}"
+  description: "{{ post.description }}"
+---
+{% set postNum = archive.posts | postNumber(post.url) %}
+{% set olderPost = archive.posts | findPost(post.older) if post.older else null %}
+{% set newerPost = archive.posts | findPost(post.newer) if post.newer else null %}
+<article class="single-post">
+  <header class="article-header">
+    <div class="post-eyebrow">
+      {% if postNum %}<span class="build-badge">Post #{{ postNum | padNumber }} of {{ archive.posts.length }}</span>{% endif %}
+      <time datetime="{{ post.date }}">{{ post.date | readableDate }}</time>
+      <span class="meta-sep" aria-hidden="true">·</span>
+      <span>by {{ post.author | escape }}</span>
+      {% if post.comments.length %}
+      <a class="comment-pill" href="#comments">{{ post.comments.length }} comment{% if post.comments.length != 1 %}s{% endif %}</a>
+      {% endif %}
+    </div>
+    <h1>{{ post.title | escape }}</h1>
+  </header>
+  <div class="entry-content">{{ post.html | safe }}</div>
+  {% include "related-albums.njk" %}
+  <footer class="article-footer">
+    {% include "terms.njk" %}
+  </footer>
+  {% if post.comments.length %}
+  <section id="comments" class="comments-section" aria-labelledby="comments-title">
+    <h2 id="comments-title">{{ post.comments.length }} historical comment{% if post.comments.length != 1 %}s{% endif %}</h2>
+    <p class="comments-note">Comments are closed. These comments are preserved from the original site.</p>
+    {% for comment in post.comments %}
+    <article class="comment{% if comment.parent %} comment-reply{% endif %}" id="comment-{{ comment.id }}">
+      <header class="comment-header">
+        <h3>{{ comment.author | escape }}</h3>
+        <p class="comment-meta"><time datetime="{{ comment.date }}">{{ comment.date | readableDate }} at {{ comment.date.slice(11, 16) }}</time>{% if comment.parent %} · <a href="#comment-{{ comment.parent }}">In reply to an earlier comment</a>{% endif %}</p>
+      </header>
+      <div class="entry-content">{{ comment.html | safe }}</div>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+</article>
+<nav class="post-pager" aria-label="Adjacent posts">
+  {% if olderPost %}
+  {% set olderNum = archive.posts | postNumber(olderPost.url) %}
+  <a class="pager-card pager-prev" href="{{ olderPost.url }}">
+    <span class="pager-label">← Older post{% if olderNum %} · #{{ olderNum | padNumber }}{% endif %}</span>
+    <span class="pager-title">{{ olderPost.title | escape }}</span>
+    <span class="pager-date">{{ olderPost.date | shortDate }}</span>
+  </a>
+  {% else %}
+  <div class="pager-spacer" aria-hidden="true"></div>
+  {% endif %}
+  <a class="pager-index" href="/all-posts/">All {{ archive.posts.length }} Posts</a>
+  {% if newerPost %}
+  {% set newerNum = archive.posts | postNumber(newerPost.url) %}
+  <a class="pager-card pager-next" href="{{ newerPost.url }}">
+    <span class="pager-label">Newer post{% if newerNum %} · #{{ newerNum | padNumber }}{% endif %} →</span>
+    <span class="pager-title">{{ newerPost.title | escape }}</span>
+    <span class="pager-date">{{ newerPost.date | shortDate }}</span>
+  </a>
+  {% else %}
+  <div class="pager-spacer" aria-hidden="true"></div>
+  {% endif %}
+</nav>

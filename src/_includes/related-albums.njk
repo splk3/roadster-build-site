@@ -1,0 +1,32 @@
+{% set relatedGallery = gallery.byPostUrl[post.url] %}
+{% if relatedGallery and relatedGallery.albums.length %}
+<aside class="related-albums" aria-labelledby="related-albums-heading">
+  <div class="related-albums-header">
+    <p class="related-albums-kicker">Photo Gallery</p>
+    <h2 id="related-albums-heading">Related Build Photo Album{% if relatedGallery.albums.length != 1 %}s{% endif %}</h2>
+    <p class="related-albums-note">{{ relatedGallery.note | escape }}</p>
+  </div>
+  <ul class="related-albums-list">
+    {% for item in relatedGallery.albums %}
+    <li>
+      <a class="related-album-card" href="{{ item.url }}">
+        <img
+          class="related-album-thumb"
+          src="{{ item.cover.thumbUrl }}"
+          alt="{{ item.cover.alt | escape }}"
+          width="{{ item.cover.thumbWidth }}"
+          height="{{ item.cover.thumbHeight }}"
+          loading="lazy"
+          decoding="async"
+        >
+        <span class="related-album-info">
+          <span class="related-album-title">{{ item.title | escape }}</span>
+          <span class="related-album-count">{{ item.photoCount }} photograph{% if item.photoCount != 1 %}s{% endif %}</span>
+        </span>
+        <span class="related-album-cta" aria-hidden="true">View album →</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endif %}

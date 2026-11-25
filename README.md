@@ -1,2 +1,151 @@
-# roadster-build-site
-migration of Dan and Pat Build a Roadster - export to a static site for long-term maintenance
+# Dan and Pat Build a Roadster
+
+A frozen Eleventy archive for <https://roadster.mightypirates.com/>, with 44 posts,
+three informational pages, and 20 historical post comments. No WordPress server,
+database, comment service, subscription service, or image proxy is required.
+
+## Build and validate
+
+Use Node 24 LTS, npm, and Docker for the full Super-Linter suite.
+
+```sh
+npm ci
+npm run build
+npm test
+npm run validate
+npx playwright install --with-deps chromium
+npm run test:e2e
+npm run lint
+npm run lint:super
+```
+
+`npm run dev` starts Eleventy's local preview. The browser tests start and stop
+their own loopback-only server. `npm run validate` checks every generated HTML
+page, internal link/fragment, image/srcset, archive record, output budget, and
+workflow pin/permission policy. Browser tests include accessibility, theme
+preferences, search, mobile layout, and visual regression baselines.
+
+The committed cleaned content is `src/_data/archive.json`; ordinary builds do
+not need the private XML or the legacy export. Layouts live in `src/_includes/`,
+with local CSS, JavaScript, and optimized photographs in `src/assets/`.
+The build publishes **only `_site/`**, never the repository root.
+
+## Reimporting the historical export
+
+Keep the raw XML private, in ignored `tmp/` or another local backup. It includes
+commenter emails/IPs that must not be committed. The importer explicitly selects
+only public comment fields.
+
+```sh
+npm run import -- tmp/danandpatbuildaroadster.WordPress.2026-11-07.xml
+npm run format
+npm run build
+npm test
+npm run validate
+```
+
+Original HTML/uploads are retained locally in ignored `tmp/original-export/`
+after migration and also exist in Git's pre-migration history. Reimport needs
+both the XML and these local uploads. Restore an original export from a trusted
+backup when working in a fresh clone; normal CI builds do not reimport.
+The importer checks the 44-post/three-page scope and errors on missing/extra
+published content, unresolved local media/links, unsupported shortcodes, or
+invalid comment threads. It generates JPEG display/large-view variants, never
+original-resolution downloads. The output budget is 500 MiB.
+
+**Content curation is deterministic and versioned:** reviewed fixes—removing
+the 23 verified prepended cross-post duplicate blocks, stripping obsolete dead
+gallery sentences, updating two broken Factory Five/Build School links, marking
+the inline emoticon decorative (`alt=""`), and providing visually verified alt
+text for all 338 build photographs—are stored in `src/_data/curation.json` and
+applied automatically on every `npm run import`. See
+[the follow-up report](docs/migration-report.md) and its per-record
+[edit inventory](docs/migration-report.json).
+
+## Optimizing gallery photos
+
+`npm run optimize:photos` reads the private originals from
+`tmp/Roadster Build Photos`, replaces `src/assets/gallery`, and writes the
+gallery metadata to `src/_data/gallery-manifest.json`. This is a maintenance
+operation, not part of a normal build. Review the generated files and run the
+build and validation checks before committing them.
+
+For a custom `--output` directory, the metadata defaults to an adjacent
+`<output>-manifest.json` instead; use `--manifest` to choose another path.
+Keep that path outside published assets. The returned optimization report
+includes detailed statistics, while the written manifest contains the metadata
+used by the gallery.
+
+## Theme, navigation, and archived comments
+
+The site uses a single-column editorial layout with a compact sticky top bar
+that keeps navigation, an **All Posts** chronological jump menu (`#01`–`#44`),
+a **Topics** dropdown (categories and tags with live filtering), top-bar search,
+and light/dark controls reachable across desktop, laptop, tablet, and phone
+viewports. Full zero-JavaScript directory pages are available at `/all-posts/`
+and `/topics/`.
+
+Light and dark modes use a Roadster Crimson & Garage Slate palette coordinated
+with the red roadster hero banner. The initial theme follows the local
+browser/OS preference, including later system changes until manually overridden.
+The header sun/moon button saves a manual choice in local storage. Blocked
+storage produces a diagnostic but does not prevent theme switching in the
+current session. Without JavaScript the site follows the system theme, hides the
+toggle, and remains readable/navigable.
+
+Search runs locally in the browser and supports filtering by title, text,
+categories, tags, or build post number (e.g. `#36`). Without JavaScript, browse
+the paginated posts, `/all-posts/`, or `/topics/`. Comments are static
+historical content; there are no reply, login, feed, subscription, or sharing
+controls.
+
+## GitHub Pages cutover
+
+The deployment workflow runs on `main` pushes or manual dispatch on `main`.
+It calls the same lint/build/test gates as PR validation, uploads the validated
+artifact, and deploys only after all jobs pass. Fork PRs cannot deploy.
+Permissions are read-only except for the final Pages/OIDC deployment job.
+
+1. Commit and push the reviewed migration to `main`.
+2. In repository Settings > Pages, select **GitHub Actions** as the build source.
+   Configure the `github-pages` environment to allow only `main`, and require the
+   source-lint and build/test checks in branch protection.
+3. Verify domain ownership where applicable and set
+   `roadster.mightypirates.com` in Pages settings **before changing DNS**. The
+   committed `CNAME` file does not replace this setting for Actions publishing.
+4. Point that hostname's DNS CNAME to `splk3.github.io` (no repository path).
+   Resolve conflicting records for this hostname only, not unrelated services.
+5. Run or rerun **Deploy Pages** after the Pages/domain settings are configured.
+   When GitHub's certificate is ready, enable HTTPS. Verify home, all three pages,
+   a post and its comment anchor, search, taxonomy routes, photos, and an actual
+   nonexistent URL serving the themed 404.
+
+Check `/build-info.json` against the deployed commit SHA to avoid accepting an
+old cached deployment. Existing date-based post URLs (`/YYYY/MM/DD/slug/`) are
+preserved via 44 static HTML redirect pages (with `<link rel="canonical">`,
+`<meta http-equiv="refresh">`, and hash-preserving JavaScript) pointing to the
+canonical `/posts/{slug}/` routes, and legacy `/?p=<id>` links redirect from the
+home page.
+
+### Handling `www.roadster.mightypirates.com`
+
+The legacy WordPress host currently redirects `roadster.mightypirates.com` to
+`www.roadster.mightypirates.com`. GitHub Pages only binds one custom hostname
+(`roadster.mightypirates.com`) and does **not** automatically redirect a `www.`
+prefix on a subdomain (`www.roadster.*` → `roadster.*`). Before retiring the
+legacy host, configure an HTTP `301` redirect at your DNS/edge provider (for
+example, a Cloudflare Redirect Rule or registrar URL forwarding rule) forwarding
+`https://www.roadster.mightypirates.com/*` (and `http://`) to
+`https://roadster.mightypirates.com/$1`, preserving path and query string. Do
+not retire the original hosting until both `roadster.mightypirates.com` and the
+`www.` redirect checks succeed.
+
+Actions use full verified release commit SHAs with exact release-tag comments.
+Dependabot proposes updates for npm and GitHub Actions. Review both the SHA/tag
+mapping and latest stable release before accepting updates; upstream action
+internals are intentionally accepted as supplied by their maintainers.
+Local `lint:super` uses the same settings and release as the CI action.
+
+For rollback, redeploy a previously validated commit on `main` (or revert the
+specific migration changes through a reviewed PR); do not delete the private
+source backups or rewrite repository history.

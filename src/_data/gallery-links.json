@@ -1,0 +1,194 @@
+{
+  "albumOrder": [
+    "body-buck",
+    "misc-new-parts",
+    "front-control-arms-suspension-etc",
+    "rear-suspension-brakes-etc",
+    "heater-defroster",
+    "pedal-box",
+    "steering",
+    "engine-build",
+    "fuel-tank",
+    "body-work-sheet-metal",
+    "misc",
+    "fuel-system",
+    "brake-system",
+    "electrical-wiring-harness",
+    "trunk-battery-box",
+    "engine-pre-work",
+    "engine-transmission-install",
+    "more-engine-work-and-other-stuff",
+    "engine-wiring-clutch-and-accel-cables",
+    "dash-gauges-and-more",
+    "gauges-switches-and-plugs",
+    "ed-and-rocco-visit",
+    "electrical-checks",
+    "seat-installation",
+    "engine-first-start",
+    "car-start-up",
+    "engine-tuning-and-finish-electrical",
+    "complete-sheet-metal-and-other-tasks",
+    "body-work",
+    "mounting-the-body",
+    "fitting-body-panels-and-other-work",
+    "body-stripes-test-and-more",
+    "more-bodywork-carpet-and-alignment",
+    "body-paint-wet-sanding-stereo-masking-for-stripes",
+    "finished-paint-and-final-assembly",
+    "finished-car-photos"
+  ],
+  "albumTitles": {
+    "pedal-box": "Pedal Box",
+    "fitting-body-panels-and-other-work": "Fitting Body Panels and Other Work"
+  },
+  "postLinks": {
+    "/posts/details-about-our-kit/": {
+      "note": "Building the wooden body buck mentioned in this update? Browse all 20 photos in the Body Buck album.",
+      "albums": ["body-buck"]
+    },
+    "/posts/body-buck-completed/": {
+      "note": "See the step-by-step cutouts, casters, shelves, and finished frame in the Body Buck album.",
+      "albums": ["body-buck"]
+    },
+    "/posts/new-parts-and-tools-and-miscellaneous-stuff/": {
+      "note": "View more photos of the wheels, side pipes, and newly arrived parts in the Misc New Parts album.",
+      "albums": ["misc-new-parts"]
+    },
+    "/posts/front-suspension-and-brakes/": {
+      "note": "See all 45 photos of the F-panels, control arms, spindles, and front brake assembly in the gallery.",
+      "albums": ["front-control-arms-suspension-etc"]
+    },
+    "/posts/rear-axle-rear-suspension-and-brakes/": {
+      "note": "Browse more photos of the rear axle prep, rear brakes, and suspension work in the gallery.",
+      "albums": ["rear-suspension-brakes-etc"]
+    },
+    "/posts/rear-suspension-completed/": {
+      "note": "View additional photos of the rear calipers, lower control arms, and Panhard bar installation in the gallery.",
+      "albums": ["rear-suspension-brakes-etc"]
+    },
+    "/posts/rear-axle-update/": {
+      "note": "See the painted rear axle housing, brackets, and completed rear suspension assembly in the gallery.",
+      "albums": ["rear-suspension-brakes-etc"]
+    },
+    "/posts/heater-defroster/": {
+      "note": "Explore all 14 photos of the firewall cutout and heater-defroster installation in the gallery.",
+      "albums": ["heater-defroster"]
+    },
+    "/posts/pedal-box-build-up-and-installation/": {
+      "note": "See more close-up photos of the pedal box assembly, painted brackets, and footbox fitment in the gallery.",
+      "albums": ["pedal-box"]
+    },
+    "/posts/steering-rack/": {
+      "note": "View all 13 photos of the steering rack, steering arms, and front linkage in the Steering album.",
+      "albums": ["steering"]
+    },
+    "/posts/engine-build-2/": {
+      "note": "Browse all 215 photos from the 347 stroker engine build and stand shots at Proformance Unlimited in the Engine Build album.",
+      "albums": ["engine-build"]
+    },
+    "/posts/engine-update/": {
+      "note": "See photos of the completed 347 stroker engine, transmission, and pickup from Proformance Unlimited in the Engine Build album.",
+      "albums": ["engine-build"]
+    },
+    "/posts/fuel-tank-installation/": {
+      "note": "See all 20 photos of the fuel tank gaskets, sending unit, filler neck, and garage helpers in the Fuel Tank album.",
+      "albums": ["fuel-tank"]
+    },
+    "/posts/cockpit-sheet-metal/": {
+      "note": "Browse more cockpit aluminum drilling, cleco fitting, and panel close-up photos in these gallery albums.",
+      "albums": ["body-work-sheet-metal", "misc"]
+    },
+    "/posts/sheet-metal-continued/": {
+      "note": "See the footbox access cover, fabricated gas-pedal push-out, and cockpit sheet metal panels in these gallery albums.",
+      "albums": ["body-work-sheet-metal", "misc"]
+    },
+    "/posts/steering-rack-part-2/": {
+      "note": "View the steering rack and tie-rod adjustment photos in the Steering album.",
+      "albums": ["steering"]
+    },
+    "/posts/fuel-lines/": {
+      "note": "See all 21 photos of the EFI fuel filters, pump plumbing, and fuel line routing in the Fuel System album.",
+      "albums": ["fuel-system"]
+    },
+    "/posts/brake-lines/": {
+      "note": "Explore all 68 photos of the dual brake reservoirs, flared hard lines, and master cylinder plumbing in the Brake System album.",
+      "albums": ["brake-system"]
+    },
+    "/posts/wiring-harness/": {
+      "note": "Browse all 36 photos of the fuse panel mount and main chassis wiring harness routing in the gallery.",
+      "albums": ["electrical-wiring-harness"]
+    },
+    "/posts/battery-box-and-trunk-aluminum/": {
+      "note": "See all 33 photos of the recessed trunk battery box and trunk sheet metal fitting in the Trunk-Battery Box album.",
+      "albums": ["trunk-battery-box"]
+    },
+    "/posts/pre-work-for-engine-transmission-install/": {
+      "note": "View all 28 photos of the oil relocation, starter index plate, wiper motor, and firewall prep in the Engine Pre-work album.",
+      "albums": ["engine-pre-work"]
+    },
+    "/posts/engine-and-transmission-are-in/": {
+      "note": "Relive engine install day across all 30 photos in the Engine-Transmission Install album.",
+      "albums": ["engine-transmission-install"]
+    },
+    "/posts/more-progress-on-engine-and-next-steps/": {
+      "note": "See all 36 photos of the redesigned footbox push-out, headers, driveshaft, and engine bay progress in the gallery.",
+      "albums": ["more-engine-work-and-other-stuff"]
+    },
+    "/posts/clutch-and-throttle-cable-and-engine-wiring/": {
+      "note": "Browse all 54 photos of the starter wiring, clutch cable, and throttle linkage setup in the gallery.",
+      "albums": ["engine-wiring-clutch-and-accel-cables"]
+    },
+    "/posts/dash-gauges-and-more/": {
+      "note": "Explore all 86 photos of the dash layout, firewall extension, emergency brake, and radiator adjustments in the gallery.",
+      "albums": ["dash-gauges-and-more"]
+    },
+    "/posts/gauges-switches-and-plugs/": {
+      "note": "See the finished dash gauges, switches, and wiring progress in these related gallery albums.",
+      "albums": ["gauges-switches-and-plugs", "ed-and-rocco-visit"]
+    },
+    "/posts/electrical-checks/": {
+      "note": "View the electrical testing and cockpit wiring photos in these related gallery albums.",
+      "albums": ["electrical-checks", "ed-and-rocco-visit"]
+    },
+    "/posts/seat-installation/": {
+      "note": "Browse all 21 photos of the racing seats, seat tracks, and mounting brackets in the Seat Installation album.",
+      "albums": ["seat-installation"]
+    },
+    "/posts/first-engine-start/": {
+      "note": "See 61 photos from side-pipe mounting through first start day in these gallery albums.",
+      "albums": ["engine-first-start", "car-start-up"]
+    },
+    "/posts/engine-tuning-and-finish-electrical/": {
+      "note": "Explore the EFI tuning, turn-signal wiring, and dash/electrical photos in these related gallery albums.",
+      "albums": ["engine-tuning-and-finish-electrical", "ed-and-rocco-visit"]
+    },
+    "/posts/completing-sheet-metal-and-other-tasks/": {
+      "note": "Browse all 63 photos of the final cockpit and trunk sheet metal, insulation, and roll-bar prep in the gallery.",
+      "albums": ["complete-sheet-metal-and-other-tasks"]
+    },
+    "/posts/begin-body-work/": {
+      "note": "View all 46 photos of seam sanding, filler work, bulb seal, and wiper mounting in the Body Work album.",
+      "albums": ["body-work"]
+    },
+    "/posts/fitting-body-panels-and-more/": {
+      "note": "See 77 photos of setting the body on the chassis and aligning the doors, hood, and trunk in these gallery albums.",
+      "albums": ["mounting-the-body", "fitting-body-panels-and-other-work"]
+    },
+    "/posts/body-stripes-test-and-more/": {
+      "note": "Browse all 51 photos of the hood scoop, stripe mockup tests, and windshield/body fitting in the gallery.",
+      "albums": ["body-stripes-test-and-more"]
+    },
+    "/posts/more-bodywork-carpet-and-more/": {
+      "note": "See all 70 photos of primer bodywork, cockpit carpet, insulation, and alignment in the gallery.",
+      "albums": ["more-bodywork-carpet-and-alignment"]
+    },
+    "/posts/body-paint-wet-sanding-stereo-masking-for-stripes/": {
+      "note": "Explore all 74 photos of the silver paint, wet sanding, stereo installation, and stripe masking in the gallery.",
+      "albums": ["body-paint-wet-sanding-stereo-masking-for-stripes"]
+    },
+    "/posts/finished-paint-and-final-assembly/": {
+      "note": "See all 288 photos of the painted stripes, final assembly, and completed roadster in these gallery albums.",
+      "albums": ["finished-paint-and-final-assembly", "finished-car-photos"]
+    }
+  }
+}

@@ -1,0 +1,38 @@
+name: Deploy Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: read
+    uses: ./.github/workflows/validate.yml
+    with:
+      publish: true
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy validated archive
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - name: Deployment URL
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: printf 'Published archive at %s\n' "$PAGE_URL" >> "$GITHUB_STEP_SUMMARY"

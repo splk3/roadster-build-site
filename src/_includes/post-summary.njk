@@ -1,0 +1,20 @@
+{% set postNum = archive.posts | postNumber(post.url) %}
+<article class="post-summary">
+  <header class="post-summary-header">
+    <div class="post-eyebrow">
+      {% if postNum %}<span class="build-badge">Post #{{ postNum | padNumber }}</span>{% endif %}
+      <time datetime="{{ post.date }}">{{ post.date | readableDate }}</time>
+      <span class="meta-sep" aria-hidden="true">·</span>
+      <span>by {{ post.author | escape }}</span>
+      {% if post.comments.length %}
+      <a class="comment-pill" href="{{ post.url }}#comments">{{ post.comments.length }} comment{% if post.comments.length != 1 %}s{% endif %}</a>
+      {% endif %}
+    </div>
+    <h2><a href="{{ post.url }}">{{ post.title | escape }}</a></h2>
+  </header>
+  <div class="entry-content">{{ post.excerpt | safe }}</div>
+  <footer class="post-summary-footer">
+    <a class="read-more" href="{{ post.url }}">Continue reading <span class="visually-hidden">{{ post.title | escape }}</span><span aria-hidden="true"> →</span></a>
+    {% include "terms.njk" %}
+  </footer>
+</article>

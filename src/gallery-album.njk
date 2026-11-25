@@ -1,0 +1,109 @@
+---
+layout: layout.njk
+pagination:
+  data: gallery.albums
+  size: 1
+  alias: album
+permalink: "{{ album.url }}"
+eleventyComputed:
+  title: "{{ album.title }} — Photo Gallery"
+  description: "Browse {{ album.photoCount }} build photographs in the {{ album.title }} album from the Dan and Pat Factory Five roadster build."
+---
+<section class="directory-page album-page">
+  <nav class="album-breadcrumb" aria-label="Breadcrumb">
+    <a href="/gallery/">← Photo Gallery</a>
+    <span class="breadcrumb-sep" aria-hidden="true">/</span>
+    <span aria-current="page">{{ album.title | escape }}</span>
+  </nav>
+
+  <header class="archive-header album-header">
+    <div class="post-eyebrow">
+      <span class="build-badge">Album {{ album.sortIndex | padNumber }} of {{ gallery.totalAlbums }}</span>
+      <span>{{ album.photoCount }} photograph{% if album.photoCount != 1 %}s{% endif %}</span>
+      <span class="meta-sep" aria-hidden="true">·</span>
+      <span>{{ album.periodLabel | escape }}</span>
+    </div>
+    <h1>{{ album.title | escape }}</h1>
+    <div class="album-actions directory-controls" hidden>
+      <button type="button" id="album-open-viewer" class="btn btn-primary">Open photo viewer</button>
+      {% if album.photoCount > 1 %}
+      <button type="button" id="album-start-slideshow" class="btn btn-secondary">Start slideshow</button>
+      {% endif %}
+      <button type="button" id="album-density-toggle" class="btn btn-secondary" data-density="comfortable" aria-pressed="false">Compact grid</button>
+    </div>
+  </header>
+
+  {% if album.posts.length %}
+  <aside class="album-related-posts" aria-labelledby="album-posts-heading">
+    <h2 id="album-posts-heading">Related Build Post{% if album.posts.length != 1 %}s{% endif %}</h2>
+    <ul class="album-posts-list">
+      {% for item in album.posts %}
+      <li>
+        <a class="album-post-card" href="{{ item.url }}">
+          <span class="build-badge">#{{ item.paddedNumber }}</span>
+          <span class="album-post-main">
+            <span class="album-post-title">{{ item.title | escape }}</span>
+            <span class="album-post-date">{{ item.date | readableDate }}</span>
+          </span>
+          <span class="timeline-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
+
+  <ol
+    id="album-photo-grid"
+    class="album-photo-grid"
+    data-lightbox-gallery="{{ album.slug }}"
+    data-album-title="{{ album.title | escape }}"
+  >
+    {% for photo in album.photos %}
+    <li class="gallery-photo-item" id="{{ photo.id }}">
+      <a
+        class="gallery-photo-link"
+        href="{{ photo.fullUrl }}"
+        data-photo-index="{{ loop.index0 }}"
+        data-photo-id="{{ photo.id }}"
+        data-thumb="{{ photo.thumbUrl }}"
+        data-caption="{{ photo.caption | escape }}"
+        data-meta="{{ photo.metaText | escape }}"
+      >
+        <img
+          src="{{ photo.thumbUrl }}"
+          alt="{{ photo.alt | escape }}"
+          width="{{ photo.thumbWidth }}"
+          height="{{ photo.thumbHeight }}"{% if loop.first %}
+          fetchpriority="high"{% elif loop.index > 8 %}
+          loading="lazy"{% endif %}
+          decoding="async"
+        >
+        <span class="gallery-photo-index" aria-hidden="true">{{ loop.index }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+
+  <nav class="post-pager album-pager" aria-label="Adjacent albums">
+    {% if album.prevAlbum %}
+    <a class="pager-card pager-prev" href="{{ album.prevAlbum.url }}">
+      <span class="pager-label">← Previous album</span>
+      <span class="pager-title">{{ album.prevAlbum.title | escape }}</span>
+      <span class="pager-date">{{ album.prevAlbum.photoCount }} photograph{% if album.prevAlbum.photoCount != 1 %}s{% endif %}</span>
+    </a>
+    {% else %}
+    <div class="pager-spacer" aria-hidden="true"></div>
+    {% endif %}
+    <a class="pager-index" href="/gallery/">All {{ gallery.totalAlbums }} Albums</a>
+    {% if album.nextAlbum %}
+    <a class="pager-card pager-next" href="{{ album.nextAlbum.url }}">
+      <span class="pager-label">Next album →</span>
+      <span class="pager-title">{{ album.nextAlbum.title | escape }}</span>
+      <span class="pager-date">{{ album.nextAlbum.photoCount }} photograph{% if album.nextAlbum.photoCount != 1 %}s{% endif %}</span>
+    </a>
+    {% else %}
+    <div class="pager-spacer" aria-hidden="true"></div>
+    {% endif %}
+  </nav>
+</section>

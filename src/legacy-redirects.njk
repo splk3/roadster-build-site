@@ -1,0 +1,28 @@
+---
+pagination:
+  data: archive.posts
+  size: 1
+  alias: post
+permalink: "{{ post.legacyUrl }}"
+eleventyExcludeFromCollections: true
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Redirecting to {{ post.title | escape }}</title>
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="{{ post.url | absolute }}">
+    <meta http-equiv="refresh" content="0;url={{ post.url }}">
+    <script>
+      window.location.replace({{ post.url | json | safe }} + window.location.hash);
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Redirecting…</h1>
+      <p>This archived post has moved to <a href="{{ post.url }}">{{ post.title | escape }}</a>.</p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+---
+layout: layout.njk
+title: Page not found
+permalink: /404.html
+---
+<section class="not-found-page">
+  <header class="archive-header">
+    <p class="archive-kicker">404</p>
+    <h1>Page not found</h1>
+  </header>
+  <div id="legacy-match" class="legacy-match" hidden>
+    <p><strong>Looking for a historical post?</strong></p>
+    <p>We found a matching archive article: <a id="legacy-link" href="/"></a></p>
+  </div>
+  <p>This page is not in the archive. Old WordPress article addresses have changed.</p>
+  <div class="not-found-actions">
+    <a class="btn btn-primary" href="/all-posts/">Browse all {{ archive.posts.length }} posts</a>
+    <a class="btn btn-secondary" href="/topics/">Browse topics</a>
+    <a class="btn btn-secondary" href="/search/">Search the archive</a>
+  </div>
+</section>
+<script>
+  (() => {
+    const path = window.location.pathname;
+    const search = window.location.search;
+    const segments = path.split("/").filter(Boolean);
+    let candidate = segments.length ? segments[segments.length - 1] : "";
+    if (candidate.endsWith(".html")) candidate = candidate.slice(0, -5);
+    const params = new URLSearchParams(search);
+    const postId = params.get("p");
+    const postName = params.get("name") || candidate;
+    if (!postName && !postId) return;
+
+    fetch("/search-index.json")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Search index request failed (${res.status})`);
+        return res.json();
+      })
+      .then((posts) => {
+        const match = posts.find((p) => {
+          const slug = p.url.replace(/^\/posts\/|\/$/g, "");
+          return slug === postName || (postId && String(p.id) === postId);
+        });
+        if (match) {
+          const box = document.querySelector("#legacy-match");
+          const link = document.querySelector("#legacy-link");
+          if (box && link) {
+            link.href = match.url;
+            link.textContent = `${match.title} →`;
+            box.hidden = false;
+          }
+        }
+      })
+      .catch((error) => console.error("Legacy post lookup unavailable", error));
+  })();
+</script>

@@ -1,0 +1,74 @@
+---
+layout: layout.njk
+title: Categories and Tags
+description: Browse all 94 build categories and 22 tags from the Dan and Pat roadster build archive.
+permalink: /topics/
+---
+{% set popular = archive.categories | popularTerms(12) %}
+{% set letterGroups = archive.categories | groupTermsByLetter %}
+<section class="directory-page">
+  <header class="archive-header">
+    <p class="archive-kicker">Browse Archive</p>
+    <h1>Categories &amp; Tags</h1>
+    <p class="archive-lead">Explore {{ archive.categories.length }} build categories and {{ archive.tags.length }} tags across all {{ archive.posts.length }} posts.</p>
+    <div class="directory-controls" hidden>
+      <label class="visually-hidden" for="topics-page-filter">Filter topics</label>
+      <input id="topics-page-filter" class="directory-filter" type="search" placeholder="Filter categories and tags (e.g. fuel, wiring, paint)…" autocomplete="off">
+    </div>
+  </header>
+
+  <section class="topics-block" aria-labelledby="popular-topics-heading">
+    <h2 id="popular-topics-heading">Most Active Categories</h2>
+    <ul class="topic-pill-grid">
+      {% for term in popular %}
+      <li data-term="{{ term.title | lower | escape }}">
+        <a class="topic-pill topic-pill-featured" href="{{ term.url }}">
+          <span>{{ term.title | escape }}</span>
+          <span class="term-count">{{ term.posts.length }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="topics-block" aria-labelledby="tags-directory-heading">
+    <h2 id="tags-directory-heading">Tags ({{ archive.tags.length }})</h2>
+    <ul class="topic-pill-grid">
+      {% for term in archive.tags %}
+      <li data-term="{{ term.title | lower | escape }}">
+        <a class="topic-pill topic-pill-tag" href="{{ term.url }}">
+          <span>#{{ term.title | escape }}</span>
+          <span class="term-count">{{ term.posts.length }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="topics-block" aria-labelledby="categories-directory-heading">
+    <h2 id="categories-directory-heading">All Categories A–Z ({{ archive.categories.length }})</h2>
+    <nav class="letter-jumps" aria-label="Jump to category letter">
+      {% for group in letterGroups %}
+      <a class="jump-pill" href="#letter-{{ group.letter }}">{{ group.letter }}</a>
+      {% endfor %}
+    </nav>
+    <div id="topics-letter-groups" class="letter-groups">
+      {% for group in letterGroups %}
+      <section id="letter-{{ group.letter }}" class="letter-group" aria-labelledby="heading-letter-{{ group.letter }}">
+        <h3 id="heading-letter-{{ group.letter }}" class="letter-heading">{{ group.letter }}</h3>
+        <ul class="topic-pill-grid">
+          {% for term in group.terms %}
+          <li data-term="{{ term.title | lower | escape }}">
+            <a class="topic-pill" href="{{ term.url }}">
+              <span>{{ term.title | escape }}</span>
+              <span class="term-count">{{ term.posts.length }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
+    </div>
+    <p id="topics-page-empty" class="panel-empty" hidden>No categories or tags match that filter.</p>
+  </section>
+</section>
