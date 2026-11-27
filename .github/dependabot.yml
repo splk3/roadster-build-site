@@ -9,15 +9,24 @@ updates:
       eslint:
         patterns:
           - eslint
+          - eslint-*
           - "@eslint/*"
       stylelint:
         patterns:
           - stylelint
           - stylelint-*
+          - "@stylelint/*"
       playwright:
         patterns:
+          - playwright
+          - playwright-*
           - "@playwright/*"
           - "@axe-core/playwright"
+      html:
+        patterns:
+          - cheerio
+          - html-validate
+          - sanitize-html
   - package-ecosystem: github-actions
     directory: /
     schedule:
